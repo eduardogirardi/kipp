@@ -19,7 +19,7 @@ editor_options:
 
 **Date**: `r format(Sys.time(), '%d %B %Y')`
 
-**Autor**: Eduardo Girardi ([eduardo.girardi\@klabin.com.br](mailto:eduardo.girardi@klabin.com.br){.email})
+**Autor**: Eduardo Girardi
 
 \
 
