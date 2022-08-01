@@ -1,0 +1,964 @@
+---
+title: "Ajuste de Hipsometricas"
+output:
+  html_document:
+    self_contained: true
+    toc: true
+    toc_float: true
+    toc_depth: 5
+editor_options: 
+  chunk_output_type: inline
+---
+
+![](logo-6.png)\
+ 
+
+**Projeto**:`r  proj_name`
+
+**Usuario**:`r  Sys.getenv('USERNAME')`
+
+**Date**: `r format(Sys.time(), '%d %B %Y')`
+
+**Autor**: Eduardo Girardi ([eduardo.girardi\@klabin.com.br](mailto:eduardo.girardi@klabin.com.br){.email})
+
+\
+
+#### ***Ajuste das equações hipsometricas***
+
+\
+Neste script será ajustada 4 equações hipsometricas:\
+\
+\
+
+-   **Scolforo**
+
+$ln(h) = \beta_{0} + \beta_{1}ln(H_{d}) + \beta_{2}ln(\frac{D_{g}}{dap}) + \beta_{3}\frac{1}{dap} + \beta_{4}\frac{1}{dap.I}$\
+
+-   **Scolforo Simplificada**
+
+$ln(h) = \beta_{0} + \beta_{1}ln(H_{d}) + \beta_{2}ln(\frac{D_{g}}{dap}) + \beta_{3}\frac{1}{dap}$\
+
+-   **Curtis**
+
+$ln(h) = \beta_{0} + \beta_{1}ln(\frac{1}{dap})$\
+
+-   **Pettersen**
+
+$ln(h) = \beta_{0} + \beta_{1}ln(dap) + \beta_{2}ln(dap)^{2}$
+
+\
+\
+
+```{r definefun, include=FALSE}
+
+
+normplot <- function (x, ...) {
+  UseMethod("normplot")
+}
+
+residplot <- function (x, ...) {
+  UseMethod("residplot")
+}
+
+residplotVI <- function (x, ...) {
+  UseMethod("residplotVI")
+}
+
+dispersionP <- function (x, ...) {
+  UseMethod("dispersionP")
+}
+
+normplot.lm <- function(model, ncol = NULL, nrow = NULL, title = NULL) {
+
+  
+  lstNormP <- list()
+  #quantil-quantil plot
+  Pqqplot <- ggplot(model) + stat_qq(aes(sample = .stdresid)) +
+                                geom_abline() + theme_minimal()
+  lstNormP[["qqplot"]] <- Pqqplot
+  
+  #normal curve plot
+  cl <- c("normal" = "#3E5496", "sample" = "black")
+  Pdens <- ggplot(model, aes(.resid)) + 
+                                geom_density(aes(y=..density.., color="sample"), size =0.71) +
+                                stat_function(fun = dnorm,
+                                              args = list(mean = mean(fortify(model)$.resid), sd = sd(fortify(model)$.resid)),
+                                              aes(color = "normal"), size =0.71) + 
+                                scale_color_manual(values = cl) +
+                                labs(color = "", x = "resid") +
+                                theme_minimal() %+replace% theme(legend.justification = c(1, 1), legend.position = c(1, 1), legend.key.size = unit(3, "mm"))
+  
+  lstNormP[["density"]] <- Pdens
+  
+  #resume
+  Presume <- wrap_plots(lstNormP, ncol = ncol, nrow = nrow) + 
+    plot_annotation(subtitle = title, 
+                    caption = paste0("Formula: ",deparse(model$call[[2]])))
+  lstNormP[["resume"]] <- Presume
+  
+  return(lstNormP)
+}
+
+residplot.lm <- function(model, delog = F, ncol = NULL, nrow = NULL, title = NULL) {
+
+  lstResidP <- list()
+  
+  if (delog == F){
+    #resid x fitted
+    Presid_fit <- ggplot(model, aes(x = .fitted, y = ((.resid*100)/fortify(model)[,1]))) +
+      geom_point(alpha = 0.2) + 
+      geom_hline(yintercept = 0, size = 0.7) +
+      labs(x = "fitted", y = "resid%") +
+      ylim(-1*max(abs((fortify(model)[,".resid"]*100)/fortify(model)[,1])),
+           max(abs((fortify(model)[,".resid"]*100)/fortify(model)[,1])))+
+      theme_minimal()
+    lstResidP[["Presid_fit"]] <- Presid_fit
+    
+    #resid x observed
+    Presid_obs <- ggplot(model, aes(x = fortify(model)[,1], y = ((.resid*100)/fortify(model)[,1]))) +
+      geom_point(alpha = 0.2) + 
+      geom_hline(yintercept = 0, size = 0.7) +
+      labs(x = "observed", y = "resid%") +
+      ylim(-1*max(abs((fortify(model)[,".resid"]*100)/fortify(model)[,1])),
+           max(abs((fortify(model)[,".resid"]*100)/fortify(model)[,1]))) +
+      theme_minimal()
+    
+    lstResidP[["Presid_obs"]] <- Presid_obs
+    
+    #stard resid
+    Sresid_fit <- ggplot(model, aes(x = .fitted, y = .stdresid)) +
+      geom_point(alpha = 0.2) + 
+      geom_hline(yintercept = 0, size = 0.7) +
+      geom_hline(yintercept = c(-2,2), size = 0.7, linetype = "dotdash") +
+      labs(x = "fitted", y = "std resid") +
+      ylim(-1*max(abs(fortify(model)[,".stdresid"])),
+           max(abs(fortify(model)[,".stdresid"]))) +
+      theme_minimal()
+    
+    lstResidP[["Sresid_fit"]] <- Sresid_fit
+    
+    #obs x fitted
+    obs_fit <- ggplot(model, aes(x = .fitted, y = fortify(model)[,1])) +
+      geom_point(alpha = 0.2) + 
+      geom_abline(intercept = 0, slope = 1, size = 0.7) +
+      labs(x = "fitted", y = "observed") +
+      lims(x = c(min(fortify(model)[,1],fortify(model)[,".fitted"]),
+                 max(fortify(model)[,1],fortify(model)[,".fitted"])),
+           y = c(min(fortify(model)[,1],fortify(model)[,".fitted"]),
+                 max(fortify(model)[,1],fortify(model)[,".fitted"]))) +
+      theme_minimal()
+    
+    lstResidP[["obs_fit"]] <- obs_fit
+    
+  } else {
+    #resid x fitted
+    Presid_fit <- ggplot(model, aes(x = exp(.fitted), y = ((.resid*100)/fortify(model)[,1]))) +
+      geom_point(alpha = 0.2) + 
+      geom_hline(yintercept = 0, size = 0.7) +
+      labs(x = "fitted", y = "resid%") +
+      ylim(-1*max(abs((fortify(model)[,".resid"]*100)/fortify(model)[,1])),
+           max(abs((fortify(model)[,".resid"]*100)/fortify(model)[,1])))+
+      theme_minimal()
+    lstResidP[["Presid_fit"]] <- Presid_fit
+    
+    #resid x observed
+    Presid_obs <- ggplot(model, aes(x = exp(fortify(model)[,1]), y = ((.resid*100)/fortify(model)[,1]))) +
+      geom_point(alpha = 0.2) + 
+      geom_hline(yintercept = 0, size = 0.7) +
+      labs(x = "observed", y = "resid%") +
+      ylim(-1*max(abs((fortify(model)[,".resid"]*100)/fortify(model)[,1])),
+           max(abs((fortify(model)[,".resid"]*100)/fortify(model)[,1]))) +
+      theme_minimal()
+    
+    lstResidP[["Presid_obs"]] <- Presid_obs
+    
+    #stard resid
+    Sresid_fit <- ggplot(model, aes(x = exp(.fitted), y = .stdresid)) +
+      geom_point(alpha = 0.2) + 
+      geom_hline(yintercept = 0, size = 0.7) +
+      geom_hline(yintercept = c(-2,2), size = 0.7, linetype = "dotdash") +
+      labs(x = "fitted", y = "std resid") +
+      ylim(-1*max(abs(fortify(model)[,".stdresid"])),
+           max(abs(fortify(model)[,".stdresid"]))) +
+      theme_minimal()
+    lstResidP[["Sresid_fit"]] <- Sresid_fit 
+    
+    #obs x fitted
+    obs_fit <- ggplot(model, aes(x = exp(.fitted), y = exp(fortify(model)[,1]))) +
+      geom_point(alpha = 0.2) + 
+      geom_abline(intercept = 0, slope = 1, size = 0.7) +
+      labs(x = "fitted", y = "observed") +
+      lims(x = c(min(exp(fortify(model)[,1]),exp(fortify(model)[,".fitted"])),
+                 max(exp(fortify(model)[,1]),exp(fortify(model)[,".fitted"]))),
+           y = c(min(exp(fortify(model)[,1]),exp(fortify(model)[,".fitted"])),
+                 max(exp(fortify(model)[,1]),exp(fortify(model)[,".fitted"])))) +
+      theme_minimal()
+    lstResidP[["obs_fit"]] <- obs_fit
+    
+  }
+  
+  Presume <- wrap_plots(lstResidP,ncol = ncol, nrow = nrow) +
+    plot_annotation(subtitle = title,
+                    caption = paste0("Formula: ",deparse(model$call[[2]])))
+  lstResidP[["resume"]] <- Presume
+  
+  return(lstResidP)
+}
+
+residplotVI.lm <- function(model, data = NULL, ncol = NULL, nrow = NULL, title = NULL) {
+
+  
+  #create a df
+  if( !(is.null(data)) ){
+    if(nrow(data) == nrow(fortify(model)) ){
+      dfplot <- cbind(fortify(model), data[,(names(data) %in% names(fortify(model))) == F])
+    } else {
+      dfplot <- fortify(model)
+    }
+  } else {
+    dfplot <- fortify(model)
+  }
+  dfplot$.residP <- (dfplot$.resid*100)/ dfplot[[toString(model$call[[2]][2])]]
+ 
+  #list variables
+  #lstVI <- as.list(attr(model$term, "term.labels"))
+  lstVI <- as.list(names(dfplot[,(!grepl("^\\.", names(dfplot))) &  
+                                  (names(dfplot) != toString(model$call[[2]][2])) ]))
+
+  #create residue of each gaph
+  
+  #plot_fun
+  #funcao para plotagem baseada no fortify
+  plot_data_column = function (dfcol, data) {
+    ggplot(data,
+           aes_string(x = dfcol, y = ".residP")) +
+      geom_point(alpha =0.3) +
+      geom_hline(yintercept = 0, size = 0.7) +
+      labs(x = dfcol, y = "resid%") +
+      ylim(-1*max(abs(data$.residP)),
+           max(abs(data$.residP)))+
+      theme_minimal()
+  }
+  
+  #apply fun
+  lstResidI <- lapply(lstVI, plot_data_column, data = dfplot)
+  names(lstResidI) <- lstVI
+  
+  #resume plot
+  resume <- wrap_plots(lstResidI, ncol = ncol, nrow = nrow) + 
+    plot_annotation(subtitle = title,
+                    caption = paste0("Formula: ",deparse(model$call[[2]])))
+  lstResidI[["resume"]] <- resume
+  
+  return(lstResidI)
+}
+
+dispersionP.lm <- function(model, ncol = NULL, nrow = NULL, data = NULL, delog = F, title = NULL) {
+  require(ggplot2)
+  require(patchwork)
+  
+  #create a dtplot
+ if( !(is.null(data)) ){
+    if( nrow(data) == nrow(fortify(model)) ){
+      dfplot <- cbind(fortify(model), data[,(names(data) %in% names(fortify(model))) == F])
+    } else {
+      dfplot <- fortify(model)
+    }
+  } else {
+    dfplot <- fortify(model)
+  }
+  dfplot$.residP <- (dfplot$.resid*100)/ dfplot[[toString(model$call[[2]][2])]]
+  
+  #list variables
+  #lstVI <- as.list(attr(model$term, "term.labels"))
+  # lstVI <- as.list(names(dfplot[,(!grepl("^\\.", names(dfplot))) &  
+  #                                 (names(dfplot) != toString(model$call[[2]][2])) ]))
+  lstVI <- as.list(names(data))
+  #create residue of each gaph
+  
+  #plot_fun
+  plot_data_column2 = function (data, dfcol, delog, model) {
+    cl <- c("observed" = "grey", "fitted" = "black")
+    if(delog == T){
+      ggplot(data = data) + 
+        geom_point(aes(x = !!sym(dfcol), y = exp(fortify(model)[,1]), color = "observed")) +
+        geom_point(aes(x = !!sym(dfcol), y = exp(.fitted), color = "fitted")) +
+        labs(y = all.vars(model$call)[1], x = dfcol)+
+        scale_color_manual(values = cl) +
+        theme_minimal() %+replace% theme(legend.position = "bottom", legend.title = element_blank(), legend.key.size = unit(3, "mm"))
+    } else{
+      ggplot(data = data) + 
+        geom_point(aes(x = !!sym(dfcol), y = (fortify(model)[,1]), color = "observed")) +
+        geom_point(aes(x = !!sym(dfcol), y = (.fitted), color = "fitted")) +
+        labs(y = toString(model$call[[2]][2]), x = dfcol)+
+        scale_color_manual(values = cl) +
+        theme_minimal() %+replace% theme(legend.position = "bottom", legend.title = element_blank(), legend.key.size = unit(3, "mm"))
+    }
+  }
+  
+  #apply fun
+  lstdisp <- lapply(lstVI, plot_data_column2, data = dfplot, delog = delog, model = model)
+  names(lstdisp) <- lstVI
+  
+  #resume plot
+  resume <- wrap_plots(lstdisp, ncol = ncol, nrow = ncol) + 
+    plot_annotation(subtitle = title,
+                    caption = paste0("Formula: ",deparse(model$call[[2]])))
+  lstdisp[["resume"]] <- resume
+  
+  return(lstdisp)
+}
+
+plot_exp <- function(data, x_var, y_var, title) {
+  x_var <- enquo(x_var)
+  y_var <- enquo(y_var)
+
+  ggplot(data = data, aes(x = !!x_var, y = !!y_var)) + 
+    geom_point(alpha = 0.3) +
+    labs(subtitle = title) +
+    lims(x = c(0,NA), y = c(0,NA)) +
+    theme_minimal()
+}
+
+jdt <- function(model, adt){
+  df <- cbind(adt[,(names(adt) %in% names(fortify(model))) == F], fortify(model))
+  return(df)
+}
+
+coefdt <- function(model, lstest, modelname){
+  df <- tidy(model, quick = T) %>% 
+    select(1:2) %>%  
+    pivot_wider(names_from = term, values_from = estimate) %>% 
+    bind_cols(glance2(model)) %>% 
+    mutate(est = lstest,
+           model = modelname) %>% 
+    select(model, est, everything())
+  return(df)
+}
+
+glance2 <- function(mol){
+  x <- glance(mol)
+  x <- x %>% 
+    mutate(sigmaP = sigma / mean(mol$residuals + mol$fitted.values),
+           .after = sigma)
+  return(x)
+}
+
+```
+
+```{r checkdatabase, include=FALSE}
+min_obs <- 8
+namecols <- c("dap", "h", unique(c(estrato[[1]], estrato[[2]])))
+
+if(any((namecols %in% names(base)) == F)){
+  stop("Nao exitem as variaveis necessarias - dap e h variaveis de estrato")
+}
+
+if(is.numeric(base$dap) == F & is.numeric(base$h) == F){
+  stop("As variaveis dap e h nao sao numericas")
+}
+```
+
+------------------------------------------------------------------------
+
+#### ***Estratificacao***
+
+\
+Para os modelos de Scolforo será utilizado o estrato:\
+***`r estrato[[1]]`***\
+\
+Para os modelos de Curtis e Pettersen será utilizado o estrato:\
+***`r estrato[[2]]`***\
+\
+\
+
+------------------------------------------------------------------------
+
+#### ***Resumo dos dados de ajuste***
+
+##### ***Scolforo***
+
+\
+
+```{r resume base1, echo=FALSE, warning = F, message = F}
+resumebase1 <- base %>% 
+  group_by(across(tidyselect::all_of(estrato[[1]]))) %>% 
+  summarise( min_h.dap = min(h/dap), max_h.dap = max(h/dap), 
+             mean_h.dap = mean(h/dap), sd_h.dap = sd(h/dap), 
+             n_obs = n())
+kable(resumebase1,
+      col.names = gsub("[.]", "/", names(resumebase1)),
+      digits = 2)
+
+resumebase2 <- base %>% 
+  group_by(across(tidyselect::all_of(estrato[[1]]))) %>% 
+  summarise( min_h = min(h), max_h = max(h), mean_h = mean(h), sd_h = sd(h),
+             min_dap = min(dap), max_dap = max(dap), mean_dap = mean(dap), sd_dap = sd(dap),
+             n_obs = n())
+kable(resumebase2, digits = 2)
+
+```
+
+\
+
+##### ***Curtis - Pettersen***
+
+ 
+
+```{r resume base2, echo=FALSE, warning = F, message = F}
+resumebase1 <- base %>% 
+  group_by(across(tidyselect::all_of(estrato[[2]]))) %>% 
+  summarise( min_h.dap = min(h/dap), max_h.dap = max(h/dap), 
+             mean_h.dap = mean(h/dap), sd_h.dap = sd(h/dap), 
+             n_obs = n())
+kable(resumebase1,
+      col.names = gsub("[.]", "/", names(resumebase1)),
+      digits = 2)
+
+resumebase2 <- base %>% 
+  group_by(across(tidyselect::all_of(estrato[[2]]))) %>% 
+  summarise( min_h = min(h), max_h = max(h), mean_h = mean(h), sd_h = sd(h),
+             min_dap = min(dap), max_dap = max(dap), mean_dap = mean(dap), sd_dap = sd(dap),
+             n_obs = n())
+kable(resumebase2, digits = 2)
+
+```
+
+\
+
+------------------------------------------------------------------------
+
+#### ***Grafico exploratorio h x dap***
+
+ 
+
+##### ***Scolforo***
+
+\
+
+```{r graficoexp1, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+#add estrato to base
+base <- base %>%
+  mutate(est1 = paste(!!!syms(estrato[[1]]), sep = "_"))
+
+#create list of stratum
+lstest1 <- sort(unique(base$est1))
+
+for(i in lstest1){
+  cat("\n#####", i, "\n")
+  plotdt <- base %>% filter(est1 == i)
+  plt <- plot_exp(plotdt, dap, h, NULL)
+  print(plt)
+  cat("\n")
+}
+```
+
+ 
+
+##### ***Curtis - Pettersen***
+
+\
+
+```{r graficoexp2, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+#add estrato to base
+base <- base %>%
+  mutate(est2 = paste(!!!syms(estrato[[2]]), sep = "_"))
+
+#create list of stratum
+lstest2 <- sort(unique(base$est2))
+
+for(i in lstest2){
+  cat("\n#####", i, "\n")
+  plotdt <- base %>% filter(est2 == i)
+  plt <- plot_exp(plotdt, dap, h, NULL)
+  print(plt)
+  cat("\n")
+}
+
+
+```
+
+\
+
+------------------------------------------------------------------------
+
+#### ***Scolforo***
+
+$ln(h) = \beta_{0} + \beta_{1}ln(H_{d}) + \beta_{2}ln(\frac{d_{g}}{dap}) + \beta_{3}\frac{1}{dap} +\beta_{4}\frac{1}{dap.I}$
+
+\
+\
+
+```{r model1, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#check variables
+essec <- c("hdom", "dg", "idade")
+if( !all((essec %in% names(base))) ){
+  cat("\nNao exitem as variaveis necessarias para o modelo MAF - hdom, dg, idade\n")
+  message("Nao exitem as variaveis necessarias para o modelo MAF - hdom, dg, idade")
+  } else {
+    
+    #run model by stratum
+    maf <- base %>%
+      mutate(dg_dap = dg/dap,
+             inv_dap.idade = 1/(dap*idade),
+             inv_dap = 1/dap) %>% 
+      split(.$est1) %>% 
+      discard(~ nrow(.x) < min_obs) %>% 
+      discard(~ length(unique(.x$dg)) <= 2) %>% 
+      discard(~ length(unique(.x$idade)) <= 2) %>% 
+      discard(~ length(unique(.x$hdom)) <= 2) %>% 
+      map(~ lm(log(h) ~ log(hdom) + log(dg_dap) + inv_dap + inv_dap.idade , data = .))
+    
+    #split additional data
+    adt_maf <- base %>% 
+      select(est1, h, hdom, dg, dap, idade) %>% 
+      split(.$est1)  %>% 
+      discard(~ nrow(.x) < min_obs) %>% 
+      discard(~ length(unique(.x$dg)) <= 2) %>% 
+      discard(~ length(unique(.x$idade)) <= 2) %>% 
+      discard(~ length(unique(.x$hdom)) <= 2)
+    
+    for(k in seq(1:length(maf))){
+      cat("\n#####", names(maf)[k], "\n")
+      
+      print(kable(tidy(maf[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
+      cat("\n", sep = "")
+      
+      print(kable(glance2(maf[[k]]), caption = "model statistics"))
+      cat("\n", sep = "")
+      
+      psnorm <- normplot(maf[[k]], title = "normality of residuals", ncol = 2)
+      print(psnorm$resume)
+      
+      psresid <- residplot(maf[[k]], title = names(maf)[k], ncol = 2, delog = T)
+      print(psresid$Presid_fit + plot_annotation(subtitle = "Residue plots"))
+      print(psresid$Presid_obs)
+      print(psresid$Sresid_fit)
+      print(psresid$obs_fit)
+      
+      psresidVI <- residplotVI(model = maf[[k]], data = adt_maf[[k]])
+      print(psresidVI$hdom)
+      print(psresidVI$dg)
+      print(psresidVI$dap)
+      print(psresidVI$idade)
+      
+      disperP <- dispersionP.lm(model = maf[[k]], data = adt_maf[[k]], delog = T)
+      print(disperP$dap)
+      cat("  \n\n  __________________  ", sep = "")
+      }
+    }
+
+```
+
+```{r model1_writefiles, echo=FALSE, warning = F, message = F}
+#create folders
+coefsdir <- paste0(path_outputs,"\\01_coefs")
+dir.create(coefsdir)
+
+modeldir <- paste0(path_outputs,"\\02_model")
+dir.create(modeldir)
+
+basedir <- paste0(path_outputs,"\\03_database")
+dir.create(basedir)
+
+#split additional data
+adt_base <- base %>% 
+  split(.$est1) %>% 
+  discard(~ nrow(.x) < min_obs) %>% 
+  discard(~ length(unique(.x$dg)) <= 2) %>% 
+  discard(~ length(unique(.x$idade)) <= 2) %>% 
+  discard(~ length(unique(.x$hdom)) <= 2)
+
+#check variables
+essec <- c("hdom", "dg", "idade")
+if( !all((essec %in% names(base))) ){
+  message("Nao exitem as variaveis necessarias para o modelo scolforo - hdom, dg, idade")
+  } else {
+    ### basedata
+    ltmaf_bd <- map2(maf, adt_base, jdt)
+    maf_bd <- invoke(rbind, ltmaf_bd)
+    
+    write_csv2(x = maf_bd, path = paste0(basedir, "\\basedata_scolforo.csv"))
+    #saveRDS(maf_bd, file = paste0(basedir, "\\basedata_scolforo.rds"))
+    
+    ### coefs
+    ltsnamesest <- as.list(names(maf))
+    ltmaf_coefs <- map2(maf, ltsnamesest, coefdt, modelname = "scolforo")
+    maf_coefs <- invoke(rbind, ltmaf_coefs) %>% 
+      separate(col = est,
+               into = estrato[[1]],
+               sep = "_") %>% 
+      rename("b0" = `(Intercept)`,
+             "b1" = `log(hdom)`,
+             "b2" = `log(dg_dap)`,
+             "b3" = inv_dap,
+             "b4" = inv_dap.idade)
+    
+    write_csv2(x = maf_coefs, path = paste0(coefsdir, "\\coefs_scolforo.csv"))
+    
+    ### models
+    saveRDS(maf, file = paste0(modeldir, "\\models_scolforo.rds"))
+}
+```
+
+\
+
+------------------------------------------------------------------------
+
+#### ***Scolforo Simplificada***
+
+$ln(h) = \beta_{0} + \beta_{1}ln(H_{d}) + \beta_{2}ln(\frac{d_{g}}{dap}) + \beta_{3}\frac{1}{dap}$
+
+\
+
+```{r model2, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#check variables
+essec <- c("hdom", "dg")
+if( !all((essec %in% names(base))) ){
+  cat("\nNao exitem as variaveis necessarias para o modelo scolforo simp. - hdom, dg \n")
+  message("Nao exitem as variaveis necessarias para o modelo scolforo simp. - hdom, dg")
+  } else {
+  
+  #run model by stratum
+  mafsim <- base %>%
+    mutate(dg_dap = dg/dap,
+          inv_dap = 1/dap) %>% 
+    split(.$est1) %>%
+    discard(~ nrow(.x) < min_obs) %>%
+    discard(~ length(unique(.x$dg)) <= 2) %>% 
+    discard(~ length(unique(.x$hdom)) <= 2) %>%
+    map(~ lm(log(h) ~ log(hdom) + log(dg_dap) + inv_dap, data = .))
+
+  #split additional data
+  adt_mafsim <- base %>% 
+    select(est1, h, hdom, dg, dap) %>% 
+    split(.$est1) %>% 
+    discard(~ nrow(.x) < min_obs) %>% 
+    discard(~ length(unique(.x$dg)) <= 2) %>% 
+    discard(~ length(unique(.x$hdom)) <= 2)
+
+  for(k in seq(1:length(mafsim))){
+    
+    cat("\n#####", names(mafsim)[k], "\n")
+    
+    print(kable(tidy(mafsim[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
+    cat("\n", sep = "")
+    
+    print(kable(glance2(mafsim[[k]]), caption = "model statistics"))
+    cat("\n", sep = "")
+    
+    psnorm <- normplot(mafsim[[k]], title = "normality of residuals", ncol = 2)
+    print(psnorm$resume)
+
+    psresid <- residplot(mafsim[[k]], title = names(mafsim)[k], ncol = 2, delog = T)
+    print(psresid$Presid_fit + plot_annotation(subtitle = "Residue plots"))
+    print(psresid$Presid_obs)
+    print(psresid$Sresid_fit)
+    print(psresid$obs_fit)
+    
+    psresidVI <- residplotVI(model = mafsim[[k]], data = adt_mafsim[[k]])
+    print(psresidVI$hdom)
+    print(psresidVI$dg)
+    print(psresidVI$dap)
+    
+    disperP <- dispersionP.lm(model = mafsim[[k]], data = adt_mafsim[[k]], delog = T)
+    print(disperP$dap)
+    
+    cat("  \n\n  __________________  ", sep = "")
+    }
+  }
+
+```
+
+```{r model2_writefiles, echo=FALSE, warning = F, message = F}
+
+#split additional data
+adt_base <- base %>% 
+  split(.$est1) %>% 
+  discard(~ nrow(.x) < min_obs) %>% 
+  discard(~ length(unique(.x$dg)) <= 2) %>% 
+  discard(~ length(unique(.x$hdom)) <= 2)
+
+essec <- c("hdom", "dg")
+if( !all((essec %in% names(base))) ){
+  message("Nao exitem as variaveis necessarias para o modelo scolforo simp. - hdom, dg")
+  } else {
+    ### basedata
+    ltmafsim_bd <- map2(mafsim, adt_base, jdt)
+    mafsim_bd <- invoke(rbind, ltmafsim_bd)
+    
+    write_csv2(x = mafsim_bd, path = paste0(basedir, "\\basedata_scolforo_simp.csv"))
+    #saveRDS(mafsim_bd, file = paste0(basedir, "\\basedata_scolforo_simp.rds"))
+    
+    ### coefs
+    ltsnamesest <- as.list(names(mafsim))
+    ltmafsim_coefs <- map2(mafsim, ltsnamesest, coefdt, modelname = "scolforo_simp")
+    mafsim_coefs <- invoke(rbind, ltmafsim_coefs) %>% 
+      separate(col = est,
+               into = estrato[[1]],
+               sep = "_") %>% 
+      rename("b0" = `(Intercept)`,
+             "b1" = `log(hdom)`,
+             "b2" = `log(dg_dap)`,
+             "b3" = inv_dap)
+    
+    write_csv2(x = mafsim_coefs, path = paste0(coefsdir, "\\coefs_scolforo_simp.csv"))
+    
+    ### models
+    saveRDS(mafsim, file = paste0(modeldir, "\\models_scolforo_simp.rds"))
+    }
+
+```
+
+\
+
+------------------------------------------------------------------------
+
+#### ***Curtis***
+
+$ln(h) = \beta_{0} + \beta_{1}ln(\frac{1}{dap})$
+
+\
+
+```{r model3, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#run model by stratum
+curtis <- base %>% 
+  mutate(inv_dap = 1/dap) %>% 
+  split(.$est2) %>% 
+  discard(~ nrow(.x) < min_obs) %>%
+  map(~ lm(log(h) ~ log(inv_dap), data = .))
+
+#split additional data
+adt_curtis <- base %>% 
+  select(est2, h, dap) %>% 
+  split(.$est2) %>% 
+  discard(~ nrow(.x) < min_obs)
+
+for(k in seq(1:length(curtis))){
+  
+  cat("\n#####", names(curtis)[k], "\n")
+  
+  print(kable(tidy(curtis[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
+  cat("\n", sep = "")
+  
+  print(kable(glance2(curtis[[k]]), caption = "model statistics"))
+  cat("\n", sep = "")
+  
+  psnorm <- normplot(curtis[[k]], title = "normality of residuals", ncol = 2)
+  print(psnorm$resume)
+
+  psresid <- residplot(curtis[[k]], title = names(curtis)[k], ncol = 2, delog = T)
+  print(psresid$Presid_fit + plot_annotation(subtitle = "Residue plots"))
+  print(psresid$Presid_obs)
+  print(psresid$Sresid_fit)
+  print(psresid$obs_fit)
+
+  psresidVI <- residplotVI(model = curtis[[k]], data = adt_curtis[[k]])
+  print(psresidVI$dap)
+
+  disperP <- dispersionP.lm(model = curtis[[k]], data = adt_curtis[[k]], delog = T)
+  print(disperP$dap)
+  
+  cat("  \n\n  __________________  ", sep = "")
+}
+
+```
+
+```{r model3_writefiles, echo=FALSE, warning = F, message = F}
+
+
+#split additional data
+adt_base <- base %>% 
+  split(.$est2) %>% 
+  discard(~ nrow(.x) < min_obs)
+
+### basedata
+ltcurtis_bd <- map2(curtis, adt_base, jdt)
+curtis_bd <- invoke(rbind, ltcurtis_bd)
+
+write_csv2(x = curtis_bd, path = paste0(basedir, "\\basedata_curtis.csv"))
+#saveRDS(curtis_bd, file = paste0(basedir, "\\basedata_curtis.rds"))
+
+### coefs
+ltsnamesest <- as.list(names(curtis))
+ltcurtis_coefs <- map2(curtis, ltsnamesest, coefdt, modelname = "curtis")
+curtis_coefs <- invoke(rbind, ltcurtis_coefs) %>% 
+      separate(col = est,
+               into = estrato[[2]],
+               sep = "_") %>% 
+      rename("b0" = `(Intercept)`,
+             "b1" = `log(inv_dap)`)
+
+write_csv2(x = curtis_coefs, path = paste0(coefsdir, "\\coefs_curtis.csv"))
+
+### models
+saveRDS(curtis, file = paste0(modeldir, "\\models_curtis.rds"))
+
+```
+
+\
+
+------------------------------------------------------------------------
+
+#### ***Pettersen***
+
+$ln(h) = \beta_{0} + \beta_{1}ln(dap) + \beta_{2}ln(dap)^{2}$
+
+\
+
+```{r model4, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#run model by stratum
+pettersen <- base %>% 
+  mutate(ln_dap2 = log(dap)**2) %>% 
+  split(.$est2) %>% 
+  discard(~ nrow(.x) < min_obs) %>%
+  map(~ lm(log(h) ~ log(dap) + ln_dap2, data = .))
+
+  #split additional data
+  adt_pettersen <- base %>% 
+    select(est2, h, dap) %>% 
+    split(.$est2) %>% 
+    discard(~ nrow(.x) < min_obs)
+
+for(k in seq(1:length(pettersen))){
+  
+  cat("\n#####", names(pettersen)[k], "\n")
+  
+  print(kable(tidy(pettersen[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
+  cat("\n", sep = "")
+  
+  print(kable(glance2(pettersen[[k]]), caption = "model statistics"))
+  cat("\n", sep = "")
+  
+  psnorm <- normplot(pettersen[[k]], title = "normality of residuals", ncol = 2)
+  print(psnorm$resume)
+
+  psresid <- residplot(pettersen[[k]], title = names(pettersen)[k], ncol = 2, delog = T)
+  print(psresid$Presid_fit + plot_annotation(subtitle = "Residue plots"))
+  print(psresid$Presid_obs)
+  print(psresid$Sresid_fit)
+  print(psresid$obs_fit)
+
+  psresidVI <- residplotVI(model = pettersen[[k]], data = adt_pettersen[[k]])
+  print(psresidVI$dap)
+
+  disperP <- dispersionP.lm(model = pettersen[[k]], data = adt_pettersen[[k]], delog = T)
+  print(disperP$dap)
+  
+  cat("  \n\n  __________________  ", sep = "")
+}
+
+```
+
+```{r model4_writefiles, echo=FALSE, warning = F, message = F}
+
+### basedata
+
+ltpettersen_bd <- map2(pettersen, adt_base, jdt)
+pettersen_bd <- invoke(rbind, ltpettersen_bd)
+
+write_csv2(x = pettersen_bd, path = paste0(basedir, "\\basedata_pettersen.csv"))
+#saveRDS(pettersen_bd, file = paste0(basedir, "\\basedata_pettersen.rds"))
+
+### coefs
+ltsnamesest <- as.list(names(pettersen))
+ltpettersen_coefs <- map2(pettersen, ltsnamesest, coefdt, modelname = "pettersen")
+pettersen_coefs <- invoke(rbind, ltpettersen_coefs)%>% 
+      separate(col = est,
+               into = estrato[[2]],
+               sep = "_") %>% 
+      rename("b0" = `(Intercept)`,
+             "b1" = `log(dap)`,
+             "b2" = ln_dap2)
+
+write_csv2(x = pettersen_coefs, path = paste0(coefsdir, "\\coefs_pettersen.csv"))
+
+### models
+saveRDS(pettersen, file = paste0(modeldir, "\\models_pettersen.rds"))
+
+```
+
+\
+
+------------------------------------------------------------------------
+
+#### ***Comparativo estatisticas do modelo***
+
+##### ***Scolforo***
+
+\
+
+```{r compare1, echo=FALSE, warning = F, message = F}
+
+
+if(exists("maf_coefs") & exists("mafsim_coefs")){
+  compare_g1 <- bind_rows(maf_coefs, mafsim_coefs) %>%
+    select(model, all_of(estrato[[1]]), everything()) %>% 
+    arrange(across(all_of(estrato[[1]])), model)
+  
+} else if (exists("maf_coefs") & !exists("mafsim_coefs")){
+  compare_g1 <- bind_rows(maf_coefs) %>%
+    select(model, all_of(estrato[[1]]), everything()) %>% 
+    arrange(across(all_of(estrato[[1]])), model)
+  
+} else if (!exists("maf_coefs") & exists("mafsim_coefs")){
+  compare_g1 <- bind_rows(mafsim_coefs) %>%
+    select(model, all_of(estrato[[1]]), everything()) %>% 
+    arrange(across(all_of(estrato[[1]])), model)
+}
+
+statcols <- c("r.squared", "adj.r.squared", "sigma", "sigmaP", "statistic",
+              "p.value", "df", "logLik", "AIC", "BIC", "deviance", 
+              "df.residual", "nobs")
+
+kable(arrange (select(compare_g1, "model", estrato[[1]], statcols),
+               across(all_of(estrato[[1]])), model), row.names = F)
+cat("\n", sep = "")
+
+kable(arrange(select(compare_g1, -statcols),
+              model, across(all_of(estrato[[1]]))), row.names = F)
+cat("\n", sep = "")
+
+```
+
+##### ***Curtis-Pettersen***
+
+ 
+
+```{r compare2, echo=FALSE, warning = F, message = F}
+
+
+if(exists("pettersen_coefs") & exists("curtis_coefs")){
+  compare_g2 <- bind_rows(pettersen_coefs, curtis_coefs) %>%
+    select(model, all_of(estrato[[2]]), everything()) %>% 
+    arrange(across(all_of(estrato[[2]])), model)
+  
+} else if (exists("pettersen_coefs") & !exists("curtis_coefs")){
+  compare_g2 <- bind_rows(pettersen_coefs) %>%
+    select(model, all_of(estrato[[2]]), everything()) %>% 
+    arrange(across(all_of(estrato[[2]])), model)
+  
+} else if (!exists("pettersen_coefs") & exists("curtis_coefs")){
+  compare_g2 <- bind_rows(curtis_coefs) %>%
+    select(model, all_of(estrato[[2]]), everything()) %>% 
+    arrange(across(all_of(estrato[[2]])), model)
+}
+
+
+statcols <- c("r.squared", "adj.r.squared", "sigma", "sigmaP", "statistic",
+              "p.value", "df", "logLik", "AIC", "BIC", "deviance", 
+              "df.residual", "nobs")
+
+kable(arrange (select(compare_g2, "model", estrato[[2]], statcols),
+               across(all_of(estrato[[2]])), model), row.names = F)
+cat("\n", sep = "")
+
+kable(arrange(select(compare_g2, -statcols),
+              model, across(all_of(estrato[[2]]))), row.names = F)
+cat("\n", sep = "")
+
+```
