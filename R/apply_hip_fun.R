@@ -111,8 +111,8 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
 
   #calula a variavel alt com os valores estimados na ausencia do observado
   bd <- bd %>%
-    mutate(alt = case_when(alt_obs > 0 ~ alt_obs,
-                           TRUE ~ h_est*10))
+    mutate(alt = case_when(alt_obs > 0 ~ round(alt_obs),
+                           TRUE ~ round(h_est*10)))
 
 }
 
