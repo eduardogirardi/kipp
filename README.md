@@ -1,10 +1,10 @@
-
-# khip
+# kipp
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
-The goal of khip is fit hypsometric model
+The goal of kipp processing of inventory parcels
 
 ## Installation
 
@@ -12,13 +12,12 @@ You can install the development version of khip from [GitHub](https://github.com
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("eduardogirardi/khip")
+devtools::install_github("eduardogirardi/kipp")
 
 #or
 
 # install.packages("pak")
-pak::pkg_install("eduardogirardi/khip")
-
+pak::pkg_install("eduardogirardi/kipp")
 ```
 
 ## Example
@@ -26,7 +25,6 @@ pak::pkg_install("eduardogirardi/khip")
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
-library(khip)
+library(kipp)
 ## basic example code
 ```
-
