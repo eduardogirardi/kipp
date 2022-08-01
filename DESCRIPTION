@@ -2,9 +2,9 @@ Package: kipp
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
+Authors@R: 
+    person("Eduardo", "Girardi", , "eduardo.rgmarques@gmail.com", role = c("aut", "cre"))
+Description: Tools for processing of forest inventory plots
     Use four spaces when indenting paragraphs within the Description.
 License: What license is it under?
 Encoding: UTF-8
