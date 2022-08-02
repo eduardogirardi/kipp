@@ -1,5 +1,3 @@
-#' @import dplyr
-NULL
 #' Uni a base de dados do coletetor com o cadastro florestal
 #'
 #' Esta função unir a bade dados do coletor com a o cadastro florestal referente utilizando os campos descritos no parametro **by** \cr

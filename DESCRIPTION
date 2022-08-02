@@ -6,7 +6,7 @@ Authors@R:
     person("Eduardo", "Girardi", , "eduardo.rgmarques@gmail.com", role = c("aut", "cre"))
 Description: Tools for processing of forest inventory plots
     Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
