@@ -1,5 +1,4 @@
-#' @import readr
-NULL
+
 #' Leitura do dados cadastrais
 #'
 #' Esta função le os dados cadastrais. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** e **","** para separacao decimal. \cr
@@ -33,6 +32,17 @@ NULL
 #'
 #' @export
 #'
+#'
+
+#readr::read_csv2
+#readr::locale
+#readr::cols
+#readr::col_character
+#readr::col_double
+#readr::col_date
+#readr::col_time
+#readr::type_convert
+
 #leitura do dados de campo
 #esta função le os dados de cadastrais dos talhoes. Os dados devem ser salvos em um arquivo formatdo csv e ter como separador o ";" e "," para separacao decimal.
 #sao 12 campos obrigatorios e devem estar ordenados conforme descrito acima. Não imposta a nomenclatura dos campos no arquivo csv, mas sim a posição.
@@ -41,11 +51,11 @@ NULL
 #demais campos podem ser adicionados apos a ultima coluna e podem ser usados para estratificação por exemplo - evite caracteres especiais e espacos em nome de variaveis
 
 read_cad <- function(file, guess_max = 30000){
-  cad <- read_csv2(file,
-                   locale = locale(encoding = 'ISO-8859-1',
-                                   date_format = "%d/%m/%Y"),
-                   na = c(".", "NA", "NaN", ""),
-                   guess_max = guess_max)
+  cad <- readr::read_csv2(file,
+                          locale = readr::locale(encoding = 'ISO-8859-1',
+                                                 date_format = "%d/%m/%Y"),
+                          na = c(".", "NA", "NaN", ""),
+                          guess_max = guess_max)
 
   #defini as variaveis essenciais
   cad_names <- c("id_talhao",	"rf",	"talhao",	"ciclo",	"rotacao",	"especie",	"matgen", "espacamento" ,"regime",	"dt_plt",	"dt_int",	"area_plt")
@@ -54,28 +64,28 @@ read_cad <- function(file, guess_max = 30000){
   if (length(names(cad)) == length(cad_names)) {
     names(cad) <- cad_names
   } else if (length(names(cad)) > length(cad_names)){
-    cad_names <- c(cad_names, names(cad)[13:length(names(cad))])
+    cad_names <- c(cad_names, names(cad)[(length(cad_names+1)):length(names(cad))])
     names(cad) <- cad_names
   } else {
     stop("Falta variaveis no arquivo de cadastro. Consultar documentação.")
   }
 
-  coltype <- cols(
-    id_talhao = col_character(),
-    rf = col_character(),
-    talhao = col_character(),
-    ciclo = col_double(),
-    rotacao = col_double(),
-    especie = col_character(),
-    matgen = col_character(),
-    espacamento = col_character(),
-    regime = col_character(),
-    dt_plt = col_date(format = ""),
-    dt_int = col_date(format = ""),
-    area_plt = col_double())
+  coltype <- readr::cols(
+    id_talhao = readr::col_character(),
+    rf = readr::col_character(),
+    talhao = readr::col_character(),
+    ciclo = readr::col_double(),
+    rotacao = readr::col_double(),
+    especie = readr::col_character(),
+    matgen = readr::col_character(),
+    espacamento = readr::col_character(),
+    regime = readr::col_character(),
+    dt_plt = readr::col_date(format = ""),
+    dt_int = readr::col_date(format = ""),
+    area_plt = readr::col_double())
 
-  cad <- type_convert(cad,
-                      col_types = coltype)
+  cad <- readr::type_convert(cad,
+                             col_types = coltype)
 
   return(cad)
 }
