@@ -1,7 +1,3 @@
-# #' @import dplyr
-# #' @import tidyr
-# #' @import stringr
-# NULL
 #' Leitura dos coeficientes
 #'
 #' Esta função ira ler os coeficientes do arquivo csv e criar o objeto necessario para aplicação do modelo \cr
@@ -17,6 +13,11 @@
 #'
 #' @export
 #'
+#'
+#'
+#
+
+
 coef_hip <- function(folder_path){
 
   #defini as variaveis a serem removidas do dataframe
@@ -40,30 +41,30 @@ coef_hip <- function(folder_path){
 
   if(file.exists(file.path(folder_path, "coefs_scolforo.csv"))){
 
-    lst_coefs$sf <- read_csv2(file.path(folder_path, "coefs_scolforo.csv")) %>%
-      select(-1, -all_of(rmvars)) %>%
-      rename_if(str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_sf"))
+    lst_coefs$sf <- readr::read_csv2(file.path(folder_path, "coefs_scolforo.csv")) %>%
+      dplyr::select(-1, -tidyselect::all_of(rmvars)) %>%
+      dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_sf"))
 
   }
   if (file.exists(file.path(folder_path, "coefs_scolforo_simp.csv"))){
 
     lst_coefs$ss <-  read_csv2(file.path(folder_path, "coefs_scolforo_simp.csv")) %>%
-      select(-1, -all_of(rmvars)) %>%
-      rename_if(str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ss"))
+      dplyr::select(-1, -tidyselect::all_of(rmvars)) %>%
+      dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ss"))
 
   }
   if (file.exists(file.path(folder_path, "coefs_pettersen.csv"))){
 
     lst_coefs$pt <- read_csv2(file.path(folder_path, "coefs_pettersen.csv")) %>%
-      select(-1, -all_of(rmvars)) %>%
-      rename_if(str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_pt"))
+      dplyr::select(-1, -tidyselect::all_of(rmvars)) %>%
+      dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_pt"))
 
   }
   if (file.exists(file.path(folder_path, "coefs_curtis.csv"))){
 
     lst_coefs$ct <- read_csv2(file.path(folder_path, "coefs_curtis.csv")) %>%
-      select(-1, -all_of(rmvars)) %>%
-      rename_if(str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ct"))
+      dplyr::select(-1, -tidyselect::all_of(rmvars)) %>%
+      dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ct"))
 
   }
 

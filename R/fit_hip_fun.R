@@ -1,13 +1,3 @@
-#' @import dplyr
-#' @import rmarkdown
-#' @import broom
-#' @import patchwork
-#' @import purrr
-#' @import knitr
-#' @import ggplot2
-#' @import tidyr
-#' @import stringr
-NULL
 #' Ajuste dos modelos
 #'
 #' Esta função ira ajustar os modelos hipsometricos \cr
@@ -40,23 +30,23 @@ fit_hip <- function(bd, proj_name, path_outputs, estrato){
 
   #filtra aluras zeradas
   base <- bd %>%
-    filter(alt != 0) %>%
-    filter(dap != 0)
+    dplyr::filter(alt != 0) %>%
+    dplyr::filter(dap != 0)
 
 
   #filtra codigos problematicos
   rmcod <- c("E", "H", "J", "T", "A", "B")
   base <- base %>%
-    filter(is.na(cod1) | cod1 %in% rmcod) %>%
-    filter(is.na(cod2) | cod2 %in% rmcod) %>%
-    filter(is.na(codQ) | codQ %in% rmcod)
+    dplyr::filter(is.na(cod1) | cod1 %in% rmcod) %>%
+    dplyr::filter(is.na(cod2) | cod2 %in% rmcod) %>%
+    dplyr::filter(is.na(codQ) | codQ %in% rmcod)
 
 
 
   # run rmd -----------------------------------------------------------------
 
   #create proj folder
-  #dir.create(file.path(path_outputs, proj_name), recursive = T)
+  dir.create(file.path(path_outputs, proj_name), recursive = T)
 
   #read and run rmd
   rmarkdown::render(input = system.file("rmd", "fit_hip.Rmd", package = "kipp"), output_file = paste0(path_outputs, "\\", proj_name, ".html"))
@@ -68,29 +58,29 @@ fit_hip <- function(bd, proj_name, path_outputs, estrato){
   if(exists("maf_coefs")){
 
     lst_coefs$sf <- maf_coefs %>%
-      select(all_of(estrato[[1]]), matches("b[[:digit:]]{1}")) %>%
-      rename_if(str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_sf"))
+      dplyr::select(tidyselect::all_of(estrato[[1]]), tidyselect::matches("b[[:digit:]]{1}")) %>%
+      dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_sf"))
 
   }
   if (exists("mafsim_coefs")){
 
     lst_coefs$ss <-  mafsim_coefs %>%
-      select(all_of(estrato[[1]]), matches("b[[:digit:]]{1}")) %>%
-      rename_if(str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ss"))
+      dplyr::select(tidyselect::all_of(estrato[[1]]), tidyselect::matches("b[[:digit:]]{1}")) %>%
+      dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ss"))
 
   }
   if (exists("pettersen_coefs")){
 
     lst_coefs$pt <- pettersen_coefs %>%
-      select(all_of(estrato[[2]]), matches("b[[:digit:]]{1}")) %>%
-      rename_if(str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_pt"))
+      dplyr::select(tidyselect::all_of(estrato[[2]]), tidyselect::matches("b[[:digit:]]{1}")) %>%
+      dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_pt"))
 
   }
   if (exists("curtis_coefs")){
 
     lst_coefs$ct <- curtis_coefs %>%
-      select(all_of(estrato[[2]]), matches("b[[:digit:]]{1}")) %>%
-      rename_if(str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ct"))
+      dplyr::select(tidyselect::all_of(estrato[[2]]), tidyselect::matches("b[[:digit:]]{1}")) %>%
+      dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ct"))
 
   }
 
