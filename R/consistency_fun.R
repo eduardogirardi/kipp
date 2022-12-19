@@ -21,10 +21,12 @@
 #' @export
 #'
 
+#rmarkdown::render
+
 consistency <- function(bd,
-                    path_outputs,
-                    im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
-                    ie = c("especie", "matgen", "regime", "classe_idade")){
+                        path_outputs,
+                        im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+                        ie = c("especie", "matgen", "regime", "classe_idade")){
 
   # run rmd -----------------------------------------------------------------
 

@@ -64,6 +64,7 @@
 #pracma::deg2rad
 #dplyr::filter
 #dplyr::group_by
+#dplyr::group_modify
 #dplyr::across
 #tidyselect::all_of
 #dplyr::summarise
@@ -71,6 +72,7 @@
 #dplyr::left_join
 #dplyr::slice_max
 #dplyr::first
+#dplyr::row_number
 
 
 cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")){
@@ -199,7 +201,7 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
 
   x <- x %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(ia))) %>%
-    mutate(fuste = row_number(), .after = arvore) %>%
+    mutate(fuste = dplyr::row_number(), .after = arvore) %>%
     dplyr::ungroup()
 
 
