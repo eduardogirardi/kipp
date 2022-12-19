@@ -1,10 +1,10 @@
 
 #' Leitura do dados cadastrais
 #'
-#' Esta função le os dados cadastrais. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** e **","** para separacao decimal. \cr
+#' Esta função le os dados cadastrais. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** para para separacao decimal deve-se usar **","** . \cr
 #' Sao 26 campos obrigatorios e devem estar ordenados conforme a sequencia abaixo: \cr
 #' \cr
-#' **id** - idexador do talhao \cr
+#' **id** - indexador do talhao \cr
 #' **rf** - identificacao de regiao florestal \cr
 #' **talhao** - identificacao do talhao \cr
 #' **ciclo** - identificacao do ciclo de plantio \cr
@@ -50,12 +50,13 @@
 #o encording pre definido é o ISO-8859-1 - Latin alphabet
 #demais campos podem ser adicionados apos a ultima coluna e podem ser usados para estratificação por exemplo - evite caracteres especiais e espacos em nome de variaveis
 
-read_cad <- function(file, guess_max = 30000){
+read_cad <- function(file, guess_max = 30000, ...){
   cad <- readr::read_csv2(file,
                           locale = readr::locale(encoding = 'ISO-8859-1',
                                                  date_format = "%d/%m/%Y"),
                           na = c(".", "NA", "NaN", ""),
-                          guess_max = guess_max)
+                          guess_max = guess_max,
+                          ...)
 
   #defini as variaveis essenciais
   cad_names <- c("id_talhao",	"rf",	"talhao",	"ciclo",	"rotacao",	"especie",	"matgen", "espacamento" ,"regime",	"dt_plt",	"dt_int",	"area_plt")
@@ -64,7 +65,7 @@ read_cad <- function(file, guess_max = 30000){
   if (length(names(cad)) == length(cad_names)) {
     names(cad) <- cad_names
   } else if (length(names(cad)) > length(cad_names)){
-    cad_names <- c(cad_names, names(cad)[(length(cad_names+1)):length(names(cad))])
+    cad_names <- c(cad_names, names(cad)[(length(cad_names)+1):length(names(cad))])
     names(cad) <- cad_names
   } else {
     stop("Falta variaveis no arquivo de cadastro. Consultar documentação.")

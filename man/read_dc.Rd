@@ -4,7 +4,7 @@
 \alias{read_dc}
 \title{Leitura do dados de campo}
 \usage{
-read_dc(file, guess_max = 1e+05)
+read_dc(file, guess_max = 1e+05, ...)
 }
 \arguments{
 \item{file}{caminho do csv2 contendo os dados de campo do coletor}

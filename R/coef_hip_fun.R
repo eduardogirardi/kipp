@@ -1,7 +1,7 @@
-#' @import dplyr
-#' @import tidyr
-#' @import stringr
-NULL
+# #' @import dplyr
+# #' @import tidyr
+# #' @import stringr
+# NULL
 #' Leitura dos coeficientes
 #'
 #' Esta função ira ler os coeficientes do arquivo csv e criar o objeto necessario para aplicação do modelo \cr

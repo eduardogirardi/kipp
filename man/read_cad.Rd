@@ -4,7 +4,7 @@
 \alias{read_cad}
 \title{Leitura do dados cadastrais}
 \usage{
-read_cad(file, guess_max = 30000)
+read_cad(file, guess_max = 30000, ...)
 }
 \arguments{
 \item{file}{caminho do csv2 contendo os dados cadastrais}
@@ -15,10 +15,10 @@ read_cad(file, guess_max = 30000)
 um dataframe similar ao csv2 de input com suas variaveis padroniadas
 }
 \description{
-Esta função le os dados cadastrais. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** e **","** para separacao decimal. \cr
+Esta função le os dados cadastrais. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** para para separacao decimal deve-se usar **","** . \cr
 Sao 26 campos obrigatorios e devem estar ordenados conforme a sequencia abaixo: \cr
 \cr
-**id** - idexador do talhao \cr
+**id** - indexador do talhao \cr
 **rf** - identificacao de regiao florestal \cr
 **talhao** - identificacao do talhao \cr
 **ciclo** - identificacao do ciclo de plantio \cr

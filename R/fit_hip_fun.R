@@ -59,7 +59,7 @@ fit_hip <- function(bd, proj_name, path_outputs, estrato){
   #dir.create(file.path(path_outputs, proj_name), recursive = T)
 
   #read and run rmd
-  rmarkdown::render(input = system.file("rmd", "fit_hip.Rmd", package = "khip"), output_file = paste0(path_outputs, "\\", proj_name, ".html"))
+  rmarkdown::render(input = system.file("rmd", "fit_hip.Rmd", package = "kipp"), output_file = paste0(path_outputs, "\\", proj_name, ".html"))
 
 
   #cria lista com os coeficientes ajustados de cada modelo

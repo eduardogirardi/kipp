@@ -15,7 +15,12 @@
 #'  dc <- cad_join(dc, cad)
 #'
 #' @export
-#'
+
+#dplyr::distinct
+#dplyr::across
+#dplyr::all_of
+#dplyr::left_join
+
 cad_join <- function(dc, cad, by = c("rf", "talhao", "ciclo", "rotacao"), ...){
 
   #remove dados duplicados no cadastro
@@ -25,7 +30,7 @@ cad_join <- function(dc, cad, by = c("rf", "talhao", "ciclo", "rotacao"), ...){
 
   #junta dados de campo com o cadastro
   dt <- dc %>%
-    dplyr::left_join(cad, by = by, ...)
+    dplyr::inner_join(cad, by = by, ...)
 
   return(dt)
 }

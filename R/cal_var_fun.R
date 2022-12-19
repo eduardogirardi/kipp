@@ -1,6 +1,6 @@
 #' Calculo de variaveis
 #'
-#' Esta função ira calcular novas variaveis necessarias para ajuste e aplicação de hipsometrica \cr
+#' Esta função ira calcular novas variaveis a nivel de arvore e de populacao \cr
 #'
 #' Serão calculadas as variaveis a nivel de arvore:\cr
 #' **dap** - diametro a 1,3m - cm\cr
@@ -16,17 +16,18 @@
 #' **ddom** - diametro dominante - cm\cr
 #' **idade** - idade - anos\cr
 #'
-#' O agrupamento da populacao sera definido pelas variaveis c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")\cr
+#'
 #'
 #' @param x dataframe contendo as informacoes padronizadas do coletor - output da funcao \code{\link{cad_join()}}
 #' @param by.assmann o parametro by.assmann = FALSE calcula o hdom e ddom pelo metodo hibrido priorizando o codigo H quando presente cod1 e cod2. Caso nao tenha nenhum codigo H ele tenta realizar o calculo nas parcelas restantes utilizando o principio de Assmann(1970) a partir dos cap e alturas medidos. Quando este TRUE ocalculo ignora o codigo H e realiza o calculo apenas utilizando o principio de Assmann(1970)
 #' @param cor_area quando o valor TRUE, indica que deve ser realizada a correção de area. E utilizado o valor maximo da inclinação para realização da correção. O campo **forma** deve conter a informacao `C` para indicar parcelas circulares, neste caso apenas a informacao do **lado1** é utiliada como raio da parcela.
+#' @param im vetor com campos identificadores de medicao.
 #'
 #' @return um dataframe de mesma estrutura com novas variaveis calculadas
 #'
 #' @examples
 #'
-#'  dc <- cal_var(bd, by.assmann = F, cor_area = F)
+#'  dc <- cal_var(bd, by.assmann = F, cor_area = F, im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"))
 #'
 #' @export
 #'
@@ -58,16 +59,29 @@
 #7 - adiciona numero de fuste
 #8 - calcula densidade de plantio
 
+#dplyr::mutate
+#dplyr::case_when
+#pracma::deg2rad
+#dplyr::filter
+#dplyr::group_by
+#dplyr::across
+#tidyselect::all_of
+#dplyr::summarise
+#dplyr::ungroup
+#dplyr::left_join
+#dplyr::slice_max
+#dplyr::first
 
-cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE){
+
+cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")){
 
 
   # calulo dap, g, h, area_parc ---------------------------------------------
 
   x <- x %>%
     dplyr::mutate(dap =  cap/(pi*10),
-           g = pi*(dap/200)^2) %>%
-    dplyr::mutate(h = alt/10)
+                  g = pi*(dap/200)^2,
+                  h = alt/10)
 
 
   # calcula da area da parcela ----------------------------------------------
@@ -77,8 +91,8 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE){
 
   if (cor_area){
     x <- x %>%
-      dplyr::mutate(area_parc = dplyr::case_when(forma == "C" ~ (( (lado1/10) ^2) * pi) * cos( deg2rad( pmax(inc1, inc2, na.rm =T))),
-                                                 TRUE ~ ((lado1/10) * (lado2/10)) * cos( deg2rad( pmax(inc1, inc2, na.rm =T)))))
+      dplyr::mutate(area_parc = dplyr::case_when(forma == "C" ~ (( (lado1/10) ^2) * pi) * cos( pracma::deg2rad( pmax(inc1, inc2, na.rm =T))),
+                                                 TRUE ~ ((lado1/10) * (lado2/10)) * cos( pracma::deg2rad( pmax(inc1, inc2, na.rm =T)))))
   } else {
     x <- x %>%
       dplyr::mutate(area_parc = dplyr::case_when(forma == "C" ~ (((lado1/10)^2) * pi),
@@ -87,9 +101,6 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE){
 
 
   # Calculando hdom, ddom ---------------------------------------------------
-
-  ##identificador de medição
-  im <- c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")
 
   if(by.assmann){
 
@@ -102,9 +113,9 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE){
       dplyr::filter(alt > 0 &
                       !cod1 %in% cs &
                       !cod2 %in% cs) %>%
-      dplyr::group_by(across(tidyselect::all_of(im))) %>%
+      dplyr::group_by(dplyr::across(tidyselect::all_of(im))) %>%
       dplyr::group_modify(~ .x %>%
-                            dplyr::slice_max(cap, n = first(.x$n_assmann))) %>%
+                            dplyr::slice_max(cap, n = dplyr::first(.x$n_assmann))) %>%
       dplyr::summarise(n_assmann = max(n_assmann, na.rm = T),
                        n_tree = dplyr::n(),
                        hdom = mean(h, na.rm = T),
@@ -149,7 +160,7 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE){
                         !cod2 %in% cs) %>%
         dplyr::group_by(across(tidyselect::all_of(im))) %>%
         dplyr::group_modify(~ .x %>%
-                              dplyr::slice_max(cap, n = first(.x$n_assmann))) %>%
+                              dplyr::slice_max(cap, n = dplyr::first(.x$n_assmann))) %>%
         dplyr::filter(alt > 0) %>%
         dplyr::summarise(n_assmann = max(n_assmann, na.rm = T),
                          n_tree = dplyr::n(),
@@ -157,12 +168,14 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE){
                          ddom_ass = mean(dap, na.rm = T)) %>%
         dplyr::ungroup()
 
+
       x <- x %>%
         dplyr::left_join(hdomtemp) %>%
         dplyr::mutate(hdom = dplyr::case_when(hdom == 0 | is.na(hdom) ~ hdom_ass,
                                               TRUE ~ hdom),
                       ddom = dplyr::case_when(ddom == 0 | is.na(ddom) ~ ddom_ass,
-                                              TRUE ~ ddom_cod))
+                                              TRUE ~ ddom)) %>%
+        select(-n_assmann, -n_tree, -hdom_ass, -ddom_ass)
     }
   }
 
@@ -178,6 +191,17 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE){
                   ab = sum(g[!cod1 %in% cs &
                                !cod2 %in% cs])) %>%
     dplyr::ungroup()
+
+
+  # calculo fuste -----------------------------------------------------------
+
+  ia <- c(im, "linha", "arvore")
+
+  x <- x %>%
+    dplyr::group_by(dplyr::across(tidyselect::all_of(ia))) %>%
+    mutate(fuste = row_number(), .after = arvore) %>%
+    dplyr::ungroup()
+
 
   # calculo da idade --------------------------------------------------------
 

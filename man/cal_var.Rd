@@ -4,7 +4,12 @@
 \alias{cal_var}
 \title{Calculo de variaveis}
 \usage{
-cal_var(x, by.assmann = FALSE, cor_area = FALSE)
+cal_var(
+  x,
+  by.assmann = FALSE,
+  cor_area = FALSE,
+  im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")
+)
 }
 \arguments{
 \item{x}{dataframe contendo as informacoes padronizadas do coletor - output da funcao \code{\link{cad_join()}}}
@@ -12,12 +17,14 @@ cal_var(x, by.assmann = FALSE, cor_area = FALSE)
 \item{by.assmann}{o parametro by.assmann = FALSE calcula o hdom e ddom pelo metodo hibrido priorizando o codigo H quando presente cod1 e cod2. Caso nao tenha nenhum codigo H ele tenta realizar o calculo nas parcelas restantes utilizando o principio de Assmann(1970) a partir dos cap e alturas medidos. Quando este TRUE ocalculo ignora o codigo H e realiza o calculo apenas utilizando o principio de Assmann(1970)}
 
 \item{cor_area}{quando o valor TRUE, indica que deve ser realizada a correção de area. E utilizado o valor maximo da inclinação para realização da correção. O campo **forma** deve conter a informacao `C` para indicar parcelas circulares, neste caso apenas a informacao do **lado1** é utiliada como raio da parcela.}
+
+\item{im}{vetor com campos identificadores de medicao.}
 }
 \value{
 um dataframe de mesma estrutura com novas variaveis calculadas
 }
 \description{
-Esta função ira calcular novas variaveis necessarias para ajuste e aplicação de hipsometrica \cr
+Esta função ira calcular novas variaveis a nivel de arvore e de populacao \cr
 }
 \details{
 Serão calculadas as variaveis a nivel de arvore:\cr
@@ -33,11 +40,9 @@ Serão calculadas as variaveis a nivel de arvore:\cr
 **hdom** - altura dominante - m\cr
 **ddom** - diametro dominante - cm\cr
 **idade** - idade - anos\cr
-
-O agrupamento da populacao sera definido pelas variaveis c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")\cr
 }
 \examples{
 
- dc <- cal_var(bd, by.assmann = F, cor_area = F)
+ dc <- cal_var(bd, by.assmann = F, cor_area = F, im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"))
 
 }

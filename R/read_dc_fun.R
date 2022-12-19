@@ -61,19 +61,19 @@
 #sao 27 campos obrigatorios e devem estar ordenados conforme a variavel "dc_names" da funcao. Não imposta a nomenclatura dos campos no arquivo csv, mas sim a posição.
 #os campos de data estao definidos para serem utilizados como dd/mm/aaaa
 #o encording pre definido é o ISO-8859-1 - Latin alphabet
-locale
-read_dc <- function(file, guess_max = 100000){
+
+read_dc <- function(file, guess_max = 100000, ...){
   dc <- readr::read_csv2(file,
-                         readr::locale = locale(encoding = 'ISO-8859-1',
+                         locale = readr::locale(encoding = 'ISO-8859-1',
                                                 date_format = "%d/%m/%Y"),
                          na = c(".", "NA", "NaN", ""),
-                         guess_max = guess_max)
+                         guess_max = guess_max,
+                         ...)
 
   #defini o nome das principais variaveis
   dc_names <- c("atividade","rf", "talhao", "ciclo", "rotacao", "dt_med", "lider", "auxiliar", "parcela", "tipo",
                 "forma", "hr_ini", "hr_fim", "coordX", "coordY", "lado1", "lado2", "inc1", "inc2", "linha", "arvore",
                 "cap", "alt", "cod1", "cod2", "codQ")
-  length(dc_names)
 
   #ajustando os nomes da variaveis conforme o numero de variais do input
   if (length(names(dc)) == length(dc_names)) {
