@@ -177,7 +177,7 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
                                               TRUE ~ hdom),
                       ddom = dplyr::case_when(ddom == 0 | is.na(ddom) ~ ddom_ass,
                                               TRUE ~ ddom)) %>%
-        select(-n_assmann, -n_tree, -hdom_ass, -ddom_ass)
+        dplyr::select(-n_assmann, -n_tree, -hdom_ass, -ddom_ass)
     }
   }
 
@@ -201,7 +201,7 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
 
   x <- x %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(ia))) %>%
-    mutate(fuste = dplyr::row_number(), .after = arvore) %>%
+    dplyr::mutate(fuste = dplyr::row_number(), .after = arvore) %>%
     dplyr::ungroup()
 
 

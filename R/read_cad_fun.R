@@ -1,4 +1,3 @@
-
 #' Leitura do dados cadastrais
 #'
 #' Esta função le os dados cadastrais. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** para para separacao decimal deve-se usar **","** . \cr

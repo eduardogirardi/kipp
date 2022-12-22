@@ -46,7 +46,7 @@ fit_hip <- function(bd, proj_name, path_outputs, estrato){
   # run rmd -----------------------------------------------------------------
 
   #create proj folder
-  dir.create(file.path(path_outputs, proj_name), recursive = T)
+  dir.create(path_outputs, recursive = T)
 
   #read and run rmd
   rmarkdown::render(input = system.file("rmd", "fit_hip.Rmd", package = "kipp"), output_file = paste0(path_outputs, "\\", proj_name, ".html"))

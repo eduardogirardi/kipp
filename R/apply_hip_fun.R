@@ -1,7 +1,3 @@
-# #' @import dplyr
-# #' @import tidyr
-# #' @import stringr
-# NULL
 #' Aplicacao dos modelos hipsometricos
 #'
 #' Aplicação dos modelos hipsometricos previamente ajustados \cr
@@ -36,7 +32,7 @@
 apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
 
   #converte a classe das variaveis do dataframe
-  coefs_aj <- purrr::map(coefs, type_convert)
+  coefs_aj <- purrr::map(coefs, readr::type_convert)
 
   bd <- purrr::reduce(append(coefs_aj, list(bd = bd), after = 0), dplyr::left_join)
 
@@ -111,8 +107,8 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
 
   #calula a variavel alt com os valores estimados na ausencia do observado
   bd <- bd %>%
-    dplyr::mutate(alt = case_when(alt_obs > 0 ~ round(alt_obs),
-                                  TRUE ~ round(h_est*10)))
+    dplyr::mutate(alt = dplyr::case_when(alt_obs > 0 ~ round(alt_obs),
+                                         TRUE ~ round(h_est*10)))
 
 }
 

@@ -1,7 +1,3 @@
-#' @import dplyr
-#' @import tidyr
-#' @import readr
-NULL
 #' Escreve o csv de input do SAS
 #'
 #' Padroniza e escreve o csv formatado para input na rotina de processamento SAS \cr
@@ -28,8 +24,8 @@ write_dc <- function(bd, path_outputs){
                 "cap", "alt", "cod1", "cod2", "codQ")
 
   bd <- bd %>%
-    select(all_of(dc_names))
+    dplyr::select(tidyselect::all_of(dc_names))
 
-  write_csv2(bd, file.path(path_outputs, "dados_campo_hest.csv"), na = ".")
+  readr::write_csv2(bd, file.path(path_outputs, "dados_campo_hest.csv"), na = ".")
 
 }

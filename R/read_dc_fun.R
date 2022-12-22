@@ -1,4 +1,3 @@
-
 #' Leitura do dados de campo
 #'
 #' Esta função le os dados de campo. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** e **","** para separacao decimal. \cr
