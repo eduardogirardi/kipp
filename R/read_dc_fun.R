@@ -34,7 +34,7 @@
 #' O encording pre definido é o ISO-8859-1 - Latin alphabet \cr
 #'
 #' @param file caminho do csv2 contendo os dados de campo do coletor
-#' @param guess_max estimativa do numero de observacoes da base de dados
+#' @param ... argumentos da readr::read_csv2
 #'
 #' @return um dataframe similar ao csv2 de input com suas variaveis padroniadas
 #'
@@ -62,12 +62,42 @@
 #o encording pre definido é o ISO-8859-1 - Latin alphabet
 
 read_dc <- function(file, guess_max = 100000, ...){
+
+  coltype <- readr::cols(
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_date(format = ""),
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_double(),
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_time(format = ""),
+    readr::col_time(format = ""),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_character())
+
   dc <- readr::read_csv2(file,
                          locale = readr::locale(encoding = 'ISO-8859-1',
                                                 date_format = "%d/%m/%Y"),
                          na = c(".", "NA", "NaN", ""),
-                         guess_max = guess_max,
+                         col_types = coltype,
                          ...)
+
 
   #defini o nome das principais variaveis
   dc_names <- c("atividade","rf", "talhao", "ciclo", "rotacao", "dt_med", "lider", "auxiliar", "parcela", "tipo",
@@ -83,37 +113,6 @@ read_dc <- function(file, guess_max = 100000, ...){
   } else {
     stop("Falta variaveis no arquivo de campo. Consultar documentação.")
   }
-
-  coltype <- readr::cols(
-    atividade = readr::col_character(),
-    rf = readr::col_character(),
-    talhao = readr::col_character(),
-    ciclo = readr::col_double(),
-    rotacao = readr::col_double(),
-    dt_med = readr::col_date(format = ""),
-    lider = readr::col_character(),
-    auxiliar = readr::col_character(),
-    parcela = readr::col_double(),
-    tipo = readr::col_character(),
-    forma = readr::col_character(),
-    hr_ini = readr::col_time(format = ""),
-    hr_fim = readr::col_time(format = ""),
-    coordX = readr::col_double(),
-    coordY = readr::col_double(),
-    lado1 = readr::col_double(),
-    lado2 = readr::col_double(),
-    inc1 = readr::col_double(),
-    inc2 = readr::col_double(),
-    linha = readr::col_double(),
-    arvore = readr::col_double(),
-    cap = readr::col_double(),
-    alt = readr::col_double(),
-    cod1 = readr::col_character(),
-    cod2 = readr::col_character(),
-    codQ = readr::col_character())
-
-  dc <- readr::type_convert(dc,
-                            col_types = coltype)
 
   return(dc)
 }

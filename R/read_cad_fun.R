@@ -50,15 +50,32 @@
 #demais campos podem ser adicionados apos a ultima coluna e podem ser usados para estratificação por exemplo - evite caracteres especiais e espacos em nome de variaveis
 
 read_cad <- function(file, guess_max = 30000, ...){
+
+  coltype <- readr::cols(
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_double(),
+    readr::col_double(),
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_date(format = ""),
+    readr::col_date(format = ""),
+    readr::col_double())
+
+
   cad <- readr::read_csv2(file,
                           locale = readr::locale(encoding = 'ISO-8859-1',
                                                  date_format = "%d/%m/%Y"),
                           na = c(".", "NA", "NaN", ""),
-                          guess_max = guess_max,
+                          col_types = coltype,
                           ...)
 
   #defini as variaveis essenciais
-  cad_names <- c("id_talhao",	"rf",	"talhao",	"ciclo",	"rotacao",	"especie",	"matgen", "espacamento" ,"regime",	"dt_plt",	"dt_int",	"area_plt")
+  cad_names <- c("id_talhao",	"rf",	"talhao",	"ciclo",	"rotacao",	"especie",	"matgen",
+                 "espacamento" ,"regime",	"dt_plt",	"dt_int",	"area_plt")
 
   #ajustando os nomes da variaveis conforme o numero de variais do input
   if (length(names(cad)) == length(cad_names)) {
@@ -70,22 +87,6 @@ read_cad <- function(file, guess_max = 30000, ...){
     stop("Falta variaveis no arquivo de cadastro. Consultar documentação.")
   }
 
-  coltype <- readr::cols(
-    id_talhao = readr::col_character(),
-    rf = readr::col_character(),
-    talhao = readr::col_character(),
-    ciclo = readr::col_double(),
-    rotacao = readr::col_double(),
-    especie = readr::col_character(),
-    matgen = readr::col_character(),
-    espacamento = readr::col_character(),
-    regime = readr::col_character(),
-    dt_plt = readr::col_date(format = ""),
-    dt_int = readr::col_date(format = ""),
-    area_plt = readr::col_double())
-
-  cad <- readr::type_convert(cad,
-                             col_types = coltype)
 
   return(cad)
 }

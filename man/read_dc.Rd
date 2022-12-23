@@ -9,7 +9,7 @@ read_dc(file, guess_max = 1e+05, ...)
 \arguments{
 \item{file}{caminho do csv2 contendo os dados de campo do coletor}
 
-\item{guess_max}{estimativa do numero de observacoes da base de dados}
+\item{...}{argumentos da readr::read_csv2}
 }
 \value{
 um dataframe similar ao csv2 de input com suas variaveis padroniadas
