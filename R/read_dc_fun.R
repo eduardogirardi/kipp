@@ -91,7 +91,7 @@ read_dc <- function(file, guess_max = 100000, ...){
     ciclo = readr::col_double(),
     rotacao = readr::col_double(),
     dt_med = readr::col_date(format = ""),
-    equipe = readr::col_character(),
+    lider = readr::col_character(),
     auxiliar = readr::col_character(),
     parcela = readr::col_double(),
     tipo = readr::col_character(),
