@@ -35,7 +35,7 @@ fit_hip <- function(bd, proj_name, path_outputs, estrato){
 
 
   #filtra codigos problematicos
-  rmcod <- c("E", "H", "J", "T", "A", "B")
+  rmcod <- c("E", "H", "J", "A", "B")
   base <- base %>%
     dplyr::filter(is.na(cod1) | cod1 %in% rmcod) %>%
     dplyr::filter(is.na(cod2) | cod2 %in% rmcod) %>%
