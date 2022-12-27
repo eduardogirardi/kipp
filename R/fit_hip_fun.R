@@ -30,8 +30,8 @@ fit_hip <- function(bd, proj_name, path_outputs, estrato){
 
   #filtra aluras zeradas
   base <- bd %>%
-    dplyr::filter(alt != 0) %>%
-    dplyr::filter(dap != 0)
+    dplyr::filter(!is.na(h) & h > 0) %>%
+    dplyr::filter(!is.na(dap) & dap > 0)
 
 
   #filtra codigos problematicos

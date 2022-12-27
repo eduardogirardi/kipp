@@ -254,6 +254,9 @@ if( !all((essec %in% names(base))) ){
       dplyr::mutate(dg_dap = dg/dap,
                     inv_dap.idade = 1/(dap*idade),
                     inv_dap = 1/dap) %>% 
+      dplyr::filter(!is.na(dg) & dg > 0) %>% 
+      dplyr::filter(!is.na(idade) & idade > 0) %>%
+      dplyr::filter(!is.na(hdom) & hdom > 0) %>%
       split(.$est1) %>% 
       purrr::discard(~ nrow(.x) < min_obs) %>% 
       purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
@@ -264,6 +267,9 @@ if( !all((essec %in% names(base))) ){
     #split additional data
     adt_maf <- base %>% 
       dplyr::select(est1, h, hdom, dg, dap, idade) %>% 
+      dplyr::filter(!is.na(dg) & dg > 0) %>% 
+      dplyr::filter(!is.na(idade) & idade > 0) %>%
+      dplyr::filter(!is.na(hdom) & hdom > 0) %>%
       split(.$est1)  %>% 
       purrr::discard(~ nrow(.x) < min_obs) %>% 
       purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
@@ -315,6 +321,9 @@ dir.create(basedir, recursive = T, showWarnings = F)
 
 #split additional data
 adt_base <- base %>% 
+  dplyr::filter(!is.na(dg) & dg > 0) %>% 
+  dplyr::filter(!is.na(idade) & idade > 0) %>%
+  dplyr::filter(!is.na(hdom) & hdom > 0) %>%
   split(.$est1) %>% 
   purrr::discard(~ nrow(.x) < min_obs) %>% 
   purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
@@ -376,6 +385,8 @@ if(!all((essec %in% names(base)))){
   mafsim <- base %>%
     dplyr::mutate(dg_dap = dg/dap,
                   inv_dap = 1/dap) %>% 
+    dplyr::filter(!is.na(dg) & dg > 0) %>% 
+    dplyr::filter(!is.na(hdom) & hdom > 0) %>%
     split(.$est1) %>%
     purrr::discard(~ nrow(.x) < min_obs) %>%
     purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
@@ -385,6 +396,8 @@ if(!all((essec %in% names(base)))){
   #split additional data
   adt_mafsim <- base %>% 
     dplyr::select(est1, h, hdom, dg, dap) %>% 
+    dplyr::filter(!is.na(dg) & dg > 0) %>% 
+    dplyr::filter(!is.na(hdom) & hdom > 0) %>%
     split(.$est1) %>% 
     purrr::discard(~ nrow(.x) < min_obs) %>% 
     purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
@@ -427,6 +440,8 @@ if(!all((essec %in% names(base)))){
 
 #split additional data
 adt_base <- base %>% 
+  dplyr::filter(!is.na(dg) & dg > 0) %>% 
+  dplyr::filter(!is.na(hdom) & hdom > 0) %>%
   split(.$est1) %>% 
   purrr::discard(~ nrow(.x) < min_obs) %>% 
   purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
