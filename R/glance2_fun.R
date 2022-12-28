@@ -15,9 +15,9 @@
 #' @export
 #'
 glance2 <- function(x){
-  x <- broom::glance(x)
-  x <- x %>%
+  df <- broom::glance(x)
+  df <- df %>%
     dplyr::mutate(sigmaP = sigma / mean(x$residuals + x$fitted.values),
            .after = sigma)
-  return(x)
+  return(df)
 }
