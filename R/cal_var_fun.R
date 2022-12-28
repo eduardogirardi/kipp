@@ -112,7 +112,7 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
 
     hdomtemp <- x %>%
       dplyr::mutate(n_assmann  = round(area_parc/100)) %>%
-      dplyr::filter(alt > 0 &
+      dplyr::filter(h > 0 &
                       !cod1 %in% cs &
                       !cod2 %in% cs) %>%
       dplyr::group_by(dplyr::across(tidyselect::all_of(im))) %>%
@@ -163,10 +163,10 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
         dplyr::group_by(across(tidyselect::all_of(im))) %>%
         dplyr::group_modify(~ .x %>%
                               dplyr::slice_max(cap, n = dplyr::first(.x$n_assmann))) %>%
-        dplyr::filter(alt > 0) %>%
+        dplyr::filter(h > 0) %>%
         dplyr::summarise(n_assmann = max(n_assmann, na.rm = T),
                          n_tree = dplyr::n(),
-                         hdom_ass = mean(alt, na.rm = T),
+                         hdom_ass = mean(h, na.rm = T),
                          ddom_ass = mean(dap, na.rm = T)) %>%
         dplyr::ungroup()
 
