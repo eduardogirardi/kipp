@@ -247,34 +247,40 @@ essec <- c("hdom", "dg", "idade")
 if( !all((essec %in% names(base))) ){
   cat("\nNao exitem as variaveis necessarias para o modelo MAF - hdom, dg, idade\n")
   message("Nao exitem as variaveis necessarias para o modelo MAF - hdom, dg, idade")
-  } else {
+} else {
+  
+  #run model by stratum
+  maf <- base %>%
+    dplyr::mutate(dg_dap = dg/dap,
+                  inv_dap.idade = 1/(dap*idade),
+                  inv_dap = 1/dap) %>% 
+    dplyr::filter(!is.na(dg) & dg > 0) %>% 
+    dplyr::filter(!is.na(idade) & idade > 0) %>%
+    dplyr::filter(!is.na(hdom) & hdom > 0) %>%
+    split(.$est1) %>% 
+    purrr::discard(~ nrow(.x) < min_obs) %>% 
+    purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
+    purrr::discard(~ length(unique(.x$idade)) <= 2) %>% 
+    purrr::discard(~ length(unique(.x$hdom)) <= 2) %>% 
+    purrr::map(~ lm(log(h) ~ log(hdom) + log(dg_dap) + inv_dap + inv_dap.idade , data = .))
+  
+  #split additional data
+  adt_maf <- base %>% 
+    dplyr::select(est1, h, hdom, dg, dap, idade) %>% 
+    dplyr::filter(!is.na(dg) & dg > 0) %>% 
+    dplyr::filter(!is.na(idade) & idade > 0) %>%
+    dplyr::filter(!is.na(hdom) & hdom > 0) %>%
+    split(.$est1)  %>% 
+    purrr::discard(~ nrow(.x) < min_obs) %>% 
+    purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
+    purrr::discard(~ length(unique(.x$idade)) <= 2) %>% 
+    purrr::discard(~ length(unique(.x$hdom)) <= 2)
+  
+  if(length(maf) < 1) {
+    cat("\nNao exitem variabilidade de hdom ou dg ou idade para ajuste do modelo de Scolvoro\n")
+    message("Nao exitem variabilidade de hdom ou dg ou idade para ajuste do modelo de Scolvoro")
     
-    #run model by stratum
-    maf <- base %>%
-      dplyr::mutate(dg_dap = dg/dap,
-                    inv_dap.idade = 1/(dap*idade),
-                    inv_dap = 1/dap) %>% 
-      dplyr::filter(!is.na(dg) & dg > 0) %>% 
-      dplyr::filter(!is.na(idade) & idade > 0) %>%
-      dplyr::filter(!is.na(hdom) & hdom > 0) %>%
-      split(.$est1) %>% 
-      purrr::discard(~ nrow(.x) < min_obs) %>% 
-      purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
-      purrr::discard(~ length(unique(.x$idade)) <= 2) %>% 
-      purrr::discard(~ length(unique(.x$hdom)) <= 2) %>% 
-      purrr::map(~ lm(log(h) ~ log(hdom) + log(dg_dap) + inv_dap + inv_dap.idade , data = .))
-    
-    #split additional data
-    adt_maf <- base %>% 
-      dplyr::select(est1, h, hdom, dg, dap, idade) %>% 
-      dplyr::filter(!is.na(dg) & dg > 0) %>% 
-      dplyr::filter(!is.na(idade) & idade > 0) %>%
-      dplyr::filter(!is.na(hdom) & hdom > 0) %>%
-      split(.$est1)  %>% 
-      purrr::discard(~ nrow(.x) < min_obs) %>% 
-      purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
-      purrr::discard(~ length(unique(.x$idade)) <= 2) %>% 
-      purrr::discard(~ length(unique(.x$hdom)) <= 2)
+  } else{
     
     for(k in seq(1:length(maf))){
       cat("\n#####", names(maf)[k], "\n")
@@ -303,8 +309,9 @@ if( !all((essec %in% names(base))) ){
       disperP <- plot_dispersion(x = maf[[k]], data = adt_maf[[k]], delog = T, exp_variables = "dap")
       print(disperP$dap)
       cat("  \n\n  __________________  ", sep = "")
-      }
     }
+  }
+}
 
 ```
 
@@ -330,35 +337,42 @@ adt_base <- base %>%
   purrr::discard(~ length(unique(.x$idade)) <= 2) %>% 
   purrr::discard(~ length(unique(.x$hdom)) <= 2)
 
-#check variables
-essec <- c("hdom", "dg", "idade")
-if(!all((essec %in% names(base)))){
-  message("Nao exitem as variaveis necessarias para o modelo scolforo - hdom, dg, idade")
-} else{
-  ### basedata
-  ltmaf_bd <- purrr::map2(maf, adt_base, jdt)
-  maf_bd <- purrr::invoke(rbind, ltmaf_bd)
+if(length(maf) < 1) {
+    cat("\nNao exitem variabilidade de hdom ou dg ou idade para ajuste do modelo de Scolvoro\n")
+    message("Nao exitem variabilidade de hdom ou dg ou idade para ajuste do modelo de Scolvoro")
+    
+} else {
   
-  readr::write_csv2(x = maf_bd, path = paste0(basedir, "\\basedata_scolforo.csv"))
-  #saveRDS(maf_bd, file = paste0(basedir, "\\basedata_scolforo.rds"))
-  
-  ### coefs
-  ltsnamesest <- as.list(names(maf))
-  ltmaf_coefs <- purrr::map2(maf, ltsnamesest, coefdt, modelname = "scolforo")
-  maf_coefs <- purrr::invoke(rbind, ltmaf_coefs) %>% 
-    tidyr::separate(col = est,
-                    into = estrato[[1]],
-                    sep = "_") %>% 
-    dplyr::rename("b0" = `(Intercept)`,
-                  "b1" = `log(hdom)`,
-                  "b2" = `log(dg_dap)`,
-                  "b3" = inv_dap,
-                  "b4" = inv_dap.idade)
-  
-  readr::write_csv2(x = maf_coefs, path = paste0(coefsdir, "\\coefs_scolforo.csv"))
-  
-  ### models
-  saveRDS(maf, file = paste0(modeldir, "\\models_scolforo.rds"))
+  #check variables
+  essec <- c("hdom", "dg", "idade")
+  if(!all((essec %in% names(base)))){
+    message("Nao exitem as variaveis necessarias para o modelo scolforo - hdom, dg, idade")
+  } else{
+    ### basedata
+    ltmaf_bd <- purrr::map2(maf, adt_base, jdt)
+    maf_bd <- purrr::invoke(rbind, ltmaf_bd)
+    
+    readr::write_csv2(x = maf_bd, path = paste0(basedir, "\\basedata_scolforo.csv"))
+    #saveRDS(maf_bd, file = paste0(basedir, "\\basedata_scolforo.rds"))
+    
+    ### coefs
+    ltsnamesest <- as.list(names(maf))
+    ltmaf_coefs <- purrr::map2(maf, ltsnamesest, coefdt, modelname = "scolforo")
+    maf_coefs <- purrr::invoke(rbind, ltmaf_coefs) %>% 
+      tidyr::separate(col = est,
+                      into = estrato[[1]],
+                      sep = "_") %>% 
+      dplyr::rename("b0" = `(Intercept)`,
+                    "b1" = `log(hdom)`,
+                    "b2" = `log(dg_dap)`,
+                    "b3" = inv_dap,
+                    "b4" = inv_dap.idade)
+    
+    readr::write_csv2(x = maf_coefs, path = paste0(coefsdir, "\\coefs_scolforo.csv"))
+    
+    ### models
+    saveRDS(maf, file = paste0(modeldir, "\\models_scolforo.rds"))
+  }
 }
 ```
 
@@ -392,7 +406,7 @@ if(!all((essec %in% names(base)))){
     purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
     purrr::discard(~ length(unique(.x$hdom)) <= 2) %>%
     purrr::map(~ lm(log(h) ~ log(hdom) + log(dg_dap) + inv_dap, data = .))
-
+  
   #split additional data
   adt_mafsim <- base %>% 
     dplyr::select(est1, h, hdom, dg, dap) %>% 
@@ -402,38 +416,45 @@ if(!all((essec %in% names(base)))){
     purrr::discard(~ nrow(.x) < min_obs) %>% 
     purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
     purrr::discard(~ length(unique(.x$hdom)) <= 2)
-
-  for(k in seq(1:length(mafsim))){
+  
+  if(length(mafsim) < 1) {
+    cat("\nNao exitem variabilidade de hdom ou dg para ajuste do modelo de Scolvoro Simplificado\n")
+    message("Nao exitem variabilidade de hdom ou dg para ajuste do modelo de Scolvoro Simplificado")
+  } else {
     
-    cat("\n#####", names(mafsim)[k], "\n")
     
-    print(knitr::kable(broom::tidy(mafsim[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
-    cat("\n", sep = "")
     
-    print(knitr::kable(glance2(mafsim[[k]]), caption = "model statistics"))
-    cat("\n", sep = "")
-    
-    psnorm <- plot_norm(mafsim[[k]], title = "normality of residuals", ncol = 2)
-    print(psnorm$resume)
-
-    psresid <- plot_resid(mafsim[[k]], title = names(mafsim)[k], ncol = 2, delog = T)
-    print(psresid$Presid_fit + patchwork::plot_annotation(subtitle = "Residue plots"))
-    print(psresid$Presid_obs)
-    print(psresid$Sresid_fit)
-    print(psresid$obs_fit)
-    
-    psresidVI <- plot_resid_ev(x = mafsim[[k]], data = adt_mafsim[[k]])
-    print(psresidVI$hdom)
-    print(psresidVI$dg)
-    print(psresidVI$dap)
-    
-    disperP <- plot_dispersion(x = mafsim[[k]], data = adt_mafsim[[k]], delog = T, exp_variables = "dap")
-    print(disperP$dap)
-    
-    cat("  \n\n  __________________  ", sep = "")
+    for(k in seq(1:length(mafsim))){
+      
+      cat("\n#####", names(mafsim)[k], "\n")
+      
+      print(knitr::kable(broom::tidy(mafsim[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
+      cat("\n", sep = "")
+      
+      print(knitr::kable(glance2(mafsim[[k]]), caption = "model statistics"))
+      cat("\n", sep = "")
+      
+      psnorm <- plot_norm(mafsim[[k]], title = "normality of residuals", ncol = 2)
+      print(psnorm$resume)
+      
+      psresid <- plot_resid(mafsim[[k]], title = names(mafsim)[k], ncol = 2, delog = T)
+      print(psresid$Presid_fit + patchwork::plot_annotation(subtitle = "Residue plots"))
+      print(psresid$Presid_obs)
+      print(psresid$Sresid_fit)
+      print(psresid$obs_fit)
+      
+      psresidVI <- plot_resid_ev(x = mafsim[[k]], data = adt_mafsim[[k]])
+      print(psresidVI$hdom)
+      print(psresidVI$dg)
+      print(psresidVI$dap)
+      
+      disperP <- plot_dispersion(x = mafsim[[k]], data = adt_mafsim[[k]], delog = T, exp_variables = "dap")
+      print(disperP$dap)
+      
+      cat("  \n\n  __________________  ", sep = "")
     }
   }
-
+}
 ```
 
 ```{r model2_writefiles, echo=FALSE, warning = F, message = F}
@@ -447,35 +468,39 @@ adt_base <- base %>%
   purrr::discard(~ length(unique(.x$dg)) <= 2) %>% 
   purrr::discard(~ length(unique(.x$hdom)) <= 2)
 
-essec <- c("hdom", "dg")
-if(!all((essec %in% names(base)))){
-  message("Nao exitem as variaveis necessarias para o modelo scolforo simp. - hdom, dg")
-} else{
-  ### basedata
-  ltmafsim_bd <- purrr::map2(mafsim, adt_base, jdt)
-  mafsim_bd <- purrr::invoke(rbind, ltmafsim_bd)
-  
-  readr::write_csv2(x = mafsim_bd, path = paste0(basedir, "\\basedata_scolforo_simp.csv"))
-  #saveRDS(mafsim_bd, file = paste0(basedir, "\\basedata_scolforo_simp.rds"))
-  
-  ### coefs
-  ltsnamesest <- as.list(names(mafsim))
-  ltmafsim_coefs <- purrr::map2(mafsim, ltsnamesest, coefdt, modelname = "scolforo_simp")
-  mafsim_coefs <- purrr::invoke(rbind, ltmafsim_coefs) %>% 
-    tidyr::separate(col = est,
-                    into = estrato[[1]],
-                    sep = "_") %>% 
-    dplyr::rename("b0" = `(Intercept)`,
-                  "b1" = `log(hdom)`,
-                  "b2" = `log(dg_dap)`,
-                  "b3" = inv_dap)
-  
-  readr::write_csv2(x = mafsim_coefs, path = paste0(coefsdir, "\\coefs_scolforo_simp.csv"))
-  
-  ### models
-  saveRDS(mafsim, file = paste0(modeldir, "\\models_scolforo_simp.rds"))
-}
-
+if(length(mafsim) < 1) {
+    cat("\nNao exitem variabilidade de hdom ou dg para ajuste do modelo de Scolvoro Simplificado\n")
+    message("Nao exitem variabilidade de hdom ou dg para ajuste do modelo de Scolvoro Simplificado")
+} else {
+  essec <- c("hdom", "dg")
+  if(!all((essec %in% names(base)))){
+    message("Nao exitem as variaveis necessarias para o modelo scolforo simp. - hdom, dg")
+  } else{
+    ### basedata
+    ltmafsim_bd <- purrr::map2(mafsim, adt_base, jdt)
+    mafsim_bd <- purrr::invoke(rbind, ltmafsim_bd)
+    
+    readr::write_csv2(x = mafsim_bd, path = paste0(basedir, "\\basedata_scolforo_simp.csv"))
+    #saveRDS(mafsim_bd, file = paste0(basedir, "\\basedata_scolforo_simp.rds"))
+    
+    ### coefs
+    ltsnamesest <- as.list(names(mafsim))
+    ltmafsim_coefs <- purrr::map2(mafsim, ltsnamesest, coefdt, modelname = "scolforo_simp")
+    mafsim_coefs <- purrr::invoke(rbind, ltmafsim_coefs) %>% 
+      tidyr::separate(col = est,
+                      into = estrato[[1]],
+                      sep = "_") %>% 
+      dplyr::rename("b0" = `(Intercept)`,
+                    "b1" = `log(hdom)`,
+                    "b2" = `log(dg_dap)`,
+                    "b3" = inv_dap)
+    
+    readr::write_csv2(x = mafsim_coefs, path = paste0(coefsdir, "\\coefs_scolforo_simp.csv"))
+    
+    ### models
+    saveRDS(mafsim, file = paste0(modeldir, "\\models_scolforo_simp.rds"))
+  }
+}  
 ```
 
 \
