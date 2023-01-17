@@ -103,12 +103,22 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
 
   #salva os valores de altura observados em uma nova variavel
   bd <- bd %>%
-    dplyr::mutate(alt_obs = alt)
+    dplyr::mutate(h_obs = h)
 
-  #calula a variavel alt com os valores estimados na ausencia do observado
+  #salva a altura de quebra
   bd <- bd %>%
-    dplyr::mutate(alt = dplyr::case_when(alt_obs > 0 ~ round(alt_obs),
-                                         TRUE ~ round(h_est*10)))
+    dplyr::mutate(h_quebra = dplyr::case_when(cod1 == "Q" | cod2 == "Q" ~ h_obs,
+                                              TRUE ~ 0))
+
+  #gera o campo h com as alturas totais (inclusive das quebradas) ordenando observadas e estimadas
+  bd <- bd %>%
+    dplyr::mutate(h = dplyr::case_when(h_obs > 0 &
+                                         (cod1 != "Q" | is.na(cod1)) &
+                                         (cod2 != "Q" | is.na(cod2))  ~ h_obs,
+                                       TRUE ~ h_est)) %>%
+    dplyr::relocate(h, .after = h_quebra)
+
+  return(bd)
 
 }
 

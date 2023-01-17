@@ -18,6 +18,10 @@
 
 write_dc <- function(bd, path_outputs){
 
+  bd <- bd %>%
+    dplyr::mutate(alt = dplyr::case_when(h_quebra > 0 ~ round(h_quebra*10),
+                                         TRUE ~ round(h*10)))
+
   #defini o nome das principais variaveis
   dc_names <- c("atividade",
                 "rf",
