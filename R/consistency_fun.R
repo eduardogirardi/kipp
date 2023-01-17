@@ -6,8 +6,9 @@
 #'
 #' @param bd dataframe contendo as informacoes padronizadas - output da funcao \code{\link{cal_var()}}
 #' @param path_outputs diretorio onde sera escrito os outputs da funcao
-#' @param im vetor com variaveis de medicao
-#' @param ie vetor com variaveis de estrato
+#' @param im vetor com campos identificadores de medicao
+#' @param ie vetor com campos identificadores de estrato
+#' @param it vetor com campos identificadores de talhao
 #'
 #' @return sera emitido o relatorio em html no caminho indicado.
 #'
@@ -15,6 +16,7 @@
 #'
 #' im <- c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")
 #' ie <- c("especie", "matgen", "regime", "classe_idade")
+#' it <- c("rf", "talhao", "ciclo", "rotacao")
 #'
 #'  consistency(bd, path_outputs, im, ie)
 #'
@@ -26,7 +28,8 @@
 consistency <- function(bd,
                         path_outputs,
                         im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
-                        ie = c("especie", "matgen", "regime", "classe_idade")){
+                        ie = c("especie", "matgen", "regime", "classe_idade"),
+                        it = c("rf", "talhao", "ciclo", "rotacao")){
 
   # run rmd -----------------------------------------------------------------
 

@@ -7,15 +7,19 @@
 samp_int(
   x,
   cad = NULL,
-  var_est = c("especie", "matgen", "regime", "classe_idade")
+  im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+  ie = c("especie", "matgen", "regime", "classe_idade"),
+  it = c("rf", "talhao", "ciclo", "rotacao")
 )
 }
 \arguments{
 \item{x}{dataframe contendo as informacoes padronizadas do coletor - output da funcao \code{\link{cad_join()}}}
 
-\item{cad}{dataframe contendo as informacoes padronizadas do coletor \code{\link{read_cad()}}}
+\item{im}{vetor com campos identificadores de medicao}
 
-\item{var_est}{vetor contendo as variaveis que compoem o estrato}
+\item{ie}{vetor com campos identificadores de estrato}
+
+\item{it}{vetor com campos identificadores de talhao}
 }
 \value{
 um dataframe com as informações de intensidade amostral de cada estrato
@@ -23,11 +27,11 @@ um dataframe com as informações de intensidade amostral de cada estrato
 \description{
 Esta função ira calcular a intensidade amostral \cr
 }
-\details{
-O agrupamento da populacao sera definido pelas variaveis c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")\cr
-}
 \examples{
 
- ia <- samp_int(x = bd, cad = NULL , var_est = c("especie", "matgen", "regime", "classe_idade"))
+ ia <- samp_int(x = bd,
+               im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+               ie = c("especie", "matgen", "regime", "classe_idade"),
+               it = c("rf", "talhao", "ciclo", "rotacao"))
 
 }

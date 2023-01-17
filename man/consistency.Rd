@@ -8,7 +8,8 @@ consistency(
   bd,
   path_outputs,
   im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
-  ie = c("especie", "matgen", "regime", "classe_idade")
+  ie = c("especie", "matgen", "regime", "classe_idade"),
+  it = c("rf", "talhao", "ciclo", "rotacao")
 )
 }
 \arguments{
@@ -16,9 +17,11 @@ consistency(
 
 \item{path_outputs}{diretorio onde sera escrito os outputs da funcao}
 
-\item{im}{vetor com variaveis de medicao}
+\item{im}{vetor com campos identificadores de medicao}
 
-\item{ie}{vetor com variaveis de estrato}
+\item{ie}{vetor com campos identificadores de estrato}
+
+\item{it}{vetor com campos identificadores de talhao}
 }
 \value{
 sera emitido o relatorio em html no caminho indicado.
@@ -30,6 +33,7 @@ Esta função ira gerar o relatorio de consistencia \cr
 
 im <- c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")
 ie <- c("especie", "matgen", "regime", "classe_idade")
+it <- c("rf", "talhao", "ciclo", "rotacao")
 
  consistency(bd, path_outputs, im, ie)
 

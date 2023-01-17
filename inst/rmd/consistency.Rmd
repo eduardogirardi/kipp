@@ -47,7 +47,14 @@ if (nrow(dp) > 0) {
   
 ```{r itensidade, echo = F, warning = F}
 
-int_am <- samp_int(bd, cad = NULL, var_est = ie)
+int_am <- samp_int(bd, 
+                   im = im,
+                   ie = ie,
+                   it = it)
+
+int_am <- janitor::adorn_totals(int_am)
+
+knitr
 
 knitr::kable(int_am, 
              digits = 1,
@@ -59,6 +66,8 @@ knitr::kable(int_am,
   
 ```{r codigos, echo = F, warning = F}
 cq <- table(tidyr::replace_na(bd$cod1, "."), tidyr::replace_na(bd$cod2, "."))
+
+
 knitr::kable(cq, row.names = T)
 ```
 
