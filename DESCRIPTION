@@ -1,7 +1,7 @@
 Package: kipp
 Type: Package
 Title: Tools for processing of forest inventory plots.
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: 
     person("Eduardo", "Girardi", , "eduardo.rgmarques@gmail.com", role = c("aut", "cre"))
 Description: Tools for processing of forest inventory plots.    
