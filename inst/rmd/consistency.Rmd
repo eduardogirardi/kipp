@@ -54,7 +54,7 @@ if (nrow(dp) > 0) {
 
 ```
 
-## Intensidade amostral
+## Intensidades amostrais
 
 ```{r itensidade, echo = F, warning = F}
 
