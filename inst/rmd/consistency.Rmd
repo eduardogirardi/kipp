@@ -10,6 +10,15 @@ editor_options:
   chunk_output_type: inline
 ---
 
+```{=html}
+<style type="text/css">
+.main-container {
+  max-width: 100% !important;
+  margin: auto;
+}
+</style>
+```
+
 ![](logo-6.png)\
  
 
@@ -26,6 +35,8 @@ editor_options:
 ```{r duplicados, echo = F, warning = F}
 #indexador arvore
 ia <- c(im, "linha", "arvore")
+
+
 
 dp <- bd %>% 
   dplyr::filter(cod1 != "B" & cod2 != "B") %>%
