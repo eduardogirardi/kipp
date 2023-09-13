@@ -40,6 +40,9 @@ Serão calculadas as variaveis a nivel de arvore:\cr
 **hdom** - altura dominante - m\cr
 **ddom** - diametro dominante - cm\cr
 **idade** - idade - anos\cr
+**covas** - numero de covas - covas/ha\cr
+**arvores** - numero de arvores - arvores/ha\cr
+**fustes** - numero de fustes - fustes/ha\cr
 }
 \examples{
 
