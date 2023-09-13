@@ -15,6 +15,9 @@
 #' **hdom** - altura dominante - m\cr
 #' **ddom** - diametro dominante - cm\cr
 #' **idade** - idade - anos\cr
+#' **covas** - numero de covas - covas/ha\cr
+#' **arvores** - numero de arvores - arvores/ha\cr
+#' **fustes** - numero de fustes - fustes/ha\cr
 #'
 #'
 #'
@@ -195,6 +198,14 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
     dplyr::ungroup()
 
 
+  # calculo da idade --------------------------------------------------------
+
+  x <- x %>%
+    dplyr::mutate(idade = dplyr::case_when(rotacao > 1 ~ as.numeric(difftime(dt_med, dt_int,  units = "days"))/365.25,
+                                           TRUE ~ as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25),
+                  classe_idade = round(idade))
+
+
   # calculo fuste -----------------------------------------------------------
 
   ia <- c(im, "linha", "arvore")
@@ -205,12 +216,28 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
     dplyr::ungroup()
 
 
-  # calculo da idade --------------------------------------------------------
+  # calculo densidade -------------------------------------------------------
+
+  cod_cova <- c("Y", "Z", "ZA")
+  cod_fuste <- c("F", "M", "N", "CA", "CR", "Y", "Z", "ZA")
+
 
   x <- x %>%
-    dplyr::mutate(idade = dplyr::case_when(rotacao > 1 ~ as.numeric(difftime(dt_med, dt_int,  units = "days"))/365.25,
-                                           TRUE ~ as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25),
-                  classe_idade = round(idade))
+    dplyr::mutate(id_temp = paste(linha, arvore, fuste, sep = "_")) %>%
+    dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
+    dplyr::mutate(covas_parc = n_distinct(id_temp[!cod1 %in% cod_cova &
+                                                    !cod2 %in% cod_cova &
+                                                    fuste == 1]),
+                  arvores_parc = n_distinct(id_temp[!cod1 %in% cod_fuste &
+                                                      !cod2 %in% cod_fuste &
+                                                      fuste == 1]),
+                  fustes_parc = n_distinct(id_temp[!cod1 %in% cod_fuste &
+                                                     !cod2 %in% cod_fuste]),
+                  covas = round((10000*covas_parc)/max(area_parc),0),
+                  arvores = round((10000*arvores_parc)/max(area_parc),0),
+                  fustes = round((10000*fustes_parc)/max(area_parc),0)) %>%
+    dplyr::select(-covas_parc, -arvores_parc, -fustes_parc) %>%
+    dplyr::ungroup()
 
   return(x)
 }
