@@ -28,6 +28,9 @@ Sao 26 campos obrigatorios e devem estar ordenados conforme a sequencia abaixo: 
 **regime** - regime de manejo \cr
 **area_plt** - area plantada do talhao - ha \cr
 **dt_plt** - data de plantio - dd/mm/yyyy \cr
+**proj_silv** - cod do projeto de silvicultura \cr
+**solo** - tipo de solo \cr
+**pot_prod** - potencial produtivo \cr
 \cr
 Não importa a nomenclatura dos campos no arquivo csv, mas sim a sua posicao. \cr
 O encording pre definido é o ISO-8859-1 - Latin alphabet \cr

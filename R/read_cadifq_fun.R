@@ -13,6 +13,9 @@
 #' **regime** - regime de manejo \cr
 #' **area_plt** - area plantada do talhao - ha \cr
 #' **dt_plt** - data de plantio - dd/mm/yyyy \cr
+#' **proj_silv** - cod do projeto de silvicultura \cr
+#' **solo** - tipo de solo \cr
+#' **pot_prod** - potencial produtivo \cr
 #' \cr
 #' Não importa a nomenclatura dos campos no arquivo csv, mas sim a sua posicao. \cr
 #' O encording pre definido é o ISO-8859-1 - Latin alphabet \cr
@@ -59,7 +62,10 @@ read_cadifq <- function(file, guess_max = 30000, ...){
     readr::col_character(),
     readr::col_character(),
     readr::col_double(),
-    readr::col_date(format = ""))
+    readr::col_date(format = ""),
+    readr::col_character(),
+    readr::col_character(),
+    readr::col_character())
 
 
   cad <- readr::read_csv2(file,
@@ -71,7 +77,7 @@ read_cadifq <- function(file, guess_max = 30000, ...){
 
   #defini as variaveis essenciais
   cad_names <- c("centro",	"rf",	"talhao",	"ciclo",	"rotacao",	"especie",	"matgen",
-                 "regime",	"area_plt", "dt_plt")
+                 "regime",	"area_plt", "dt_plt", "proj_silv", "solo", "pot_prod")
 
   #ajustando os nomes da variaveis conforme o numero de variais do input
   if (length(names(cad)) == length(cad_names)) {

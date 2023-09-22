@@ -7,7 +7,8 @@
 pp_ifq(
   x,
   cor_area = FALSE,
-  im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")
+  im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+  it = c("rf", "talhao", "ciclo", "rotacao")
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ pp_ifq(
 \item{cor_area}{quando o valor TRUE, indica que deve ser realizada a correção de area. E utilizado o valor maximo da inclinação para realização da correção. O campo **forma** deve conter a informacao `C` para indicar parcelas circulares, neste caso apenas a informacao do **lado1** é utiliada como raio da parcela.}
 
 \item{im}{vetor com campos identificadores de medicao.}
+
+\item{it}{vetor com campos identificadores de talhao}
 }
 \value{
 um dataframe de mesma estrutura com novas variaveis calculadas
@@ -25,6 +28,10 @@ Esta função ira processar o IFQ \cr
 }
 \examples{
 
- dc <- cal_var(bd, by.assmann = F, cor_area = F, im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"))
+ dc <- cal_var(bd,
+               by.assmann = F,
+               cor_area = F,
+               im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+               it = c("rf", "talhao", "ciclo", "rotacao"))
 
 }
