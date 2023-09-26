@@ -43,7 +43,6 @@
 #7 - adiciona numero de fuste
 #8 - calcula densidade de plantio
 
-
 pp_ifq <- function(x,
                    cor_area = FALSE,
                    im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
@@ -88,8 +87,7 @@ pp_ifq <- function(x,
   # calculo da idade --------------------------------------------------------
 
   x <- x %>%
-    dplyr::mutate(idade = as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25,
-                  classe_idade = round(idade))
+    dplyr::mutate(idade = (as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25)*12)
 
 
   # calculo densidades ------------------------------------------------------
