@@ -1,6 +1,6 @@
 #' Leitura do dados de campo
 #'
-#' Esta função le os dados de campo. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** e **","** para separacao decimal. \cr
+#' Esta função le os dados de campo. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o \strong{";"} e \strong{","} para separacao decimal. \cr
 #' Sao 26 campos obrigatorios e devem estar ordenados conforme a sequencia abaixo: \cr
 #' \cr
 #' \strong{atividade} - descricao da atividade \cr
@@ -34,7 +34,7 @@
 #' O encording pre definido é o ISO-8859-1 - Latin alphabet \cr
 #'
 #' @param file caminho do csv2 contendo os dados de campo do coletor
-#' @param ... argumentos da readr::read_csv2
+#' @param ... argumentos da \link[=readr]{read_csv2}
 #'
 #' @return um dataframe similar ao csv2 de input com suas variaveis padroniadas
 #'

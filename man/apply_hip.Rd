@@ -13,7 +13,7 @@ apply_hip(bd, coefs, priority = NULL, by.model_sel = F)
 
 \item{priority}{vetor com a prioridade de modelo a ser utilizado na altura predita. c("scolforo_simp", "scolforo", "pettersen", "curtis")}
 
-\item{by.model_sel}{se TRUE sera utilizado o modelo pre-definido na na variavel  **model_sel** presente no dataframe **bd**. c("scolforo_simp", "scolforo", "pettersen", "curtis")}
+\item{by.model_sel}{se TRUE sera utilizado o modelo pre-definido na variavel \strong{model_sel} presente no dataframe \strong{bd}. c("scolforo_simp", "scolforo", "pettersen", "curtis")}
 }
 \value{
 Dataframe contendo as variaveis preditas com os modelos inputados

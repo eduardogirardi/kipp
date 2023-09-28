@@ -10,7 +10,7 @@
 #'
 #' @examples
 #'
-#' glance2(mol)
+#' glance_log(mol)
 #'
 #' @export
 #'

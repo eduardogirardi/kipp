@@ -9,13 +9,13 @@ read_dc(file, guess_max = 1e+05, ...)
 \arguments{
 \item{file}{caminho do csv2 contendo os dados de campo do coletor}
 
-\item{...}{argumentos da readr::read_csv2}
+\item{...}{argumentos da \link[=readr]{read_csv2}}
 }
 \value{
 um dataframe similar ao csv2 de input com suas variaveis padroniadas
 }
 \description{
-Esta função le os dados de campo. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** e **","** para separacao decimal. \cr
+Esta função le os dados de campo. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o \strong{";"} e \strong{","} para separacao decimal. \cr
 Sao 26 campos obrigatorios e devem estar ordenados conforme a sequencia abaixo: \cr
 \cr
 \strong{atividade} - descricao da atividade \cr

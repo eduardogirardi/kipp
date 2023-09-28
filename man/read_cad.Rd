@@ -15,21 +15,21 @@ read_cad(file, guess_max = 30000, ...)
 um dataframe similar ao csv2 de input com suas variaveis padroniadas
 }
 \description{
-Esta função le os dados cadastrais. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** para para separacao decimal deve-se usar **","** . \cr
+Esta função le os dados cadastrais. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o \strong{";"} para para separacao decimal deve-se usar \strong{","} . \cr
 Sao 26 campos obrigatorios e devem estar ordenados conforme a sequencia abaixo: \cr
 \cr
-**id** - indexador do talhao \cr
-**rf** - identificacao de regiao florestal \cr
-**talhao** - identificacao do talhao \cr
-**ciclo** - identificacao do ciclo de plantio \cr
-**rotacao** - identificacao da rotacao de plantio \cr
-**especie** - descricao da especie \cr
-**matgen** - descricao do material genetico \cr
-**espacamento** - espacamento de plantio \cr
-**regime** - regime de manejo \cr
-**dt_plt** - data de plantio - dd/mm/yyyy \cr
-**dt_int** - data da ultima intervencao - dd/mm/yyyy \cr
-**area_plt** - area plantada do talhao - ha \cr
+\strong{id} - indexador do talhao \cr
+\strong{rf} - identificacao de regiao florestal \cr
+\strong{talhao} - identificacao do talhao \cr
+\strong{ciclo} - identificacao do ciclo de plantio \cr
+\strong{rotacao} - identificacao da rotacao de plantio \cr
+\strong{especie} - descricao da especie \cr
+\strong{matgen} - descricao do material genetico \cr
+\strong{espacamento} - espacamento de plantio \cr
+\strong{regime} - regime de manejo \cr
+\strong{dt_plt} - data de plantio - dd/mm/yyyy \cr
+\strong{dt_int} - data da ultima intervencao - dd/mm/yyyy \cr
+\strong{area_plt} - area plantada do talhao - ha \cr
 \cr
 Não importa a nomenclatura dos campos no arquivo csv, mas sim a sua posicao. \cr
 O encording pre definido é o ISO-8859-1 - Latin alphabet \cr

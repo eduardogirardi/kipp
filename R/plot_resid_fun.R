@@ -15,6 +15,9 @@
 #' pr
 #'
 #' @export
+#'
+#'
+#'
 plot_resid <- function(x, ...){
   UseMethod("plot_resid")
 }
@@ -22,6 +25,9 @@ plot_resid <- function(x, ...){
 #' @rdname plot_resid
 #' @method plot_resid lm
 #' @export
+#'
+#'
+#'
 plot_resid.lm <- function(x, delog = F, ncol = NULL, nrow = NULL, title = NULL) {
 
   lstResidP <- list()

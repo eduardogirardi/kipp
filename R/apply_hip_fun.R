@@ -6,7 +6,7 @@
 #' @param bd dataframe com a base dados a ser aplicada os modelos. Output da funcao \code{\link{cal_var()}}
 #' @param coefs lista dos coeficientes ajustados. Output da funcao \code{\link{fit_hip()}} ou \code{\link{coef_hip()}}
 #' @param priority vetor com a prioridade de modelo a ser utilizado na altura predita. c("scolforo_simp", "scolforo", "pettersen", "curtis")
-#' @param by.model_sel se TRUE sera utilizado o modelo pre-definido na na variavel  **model_sel** presente no dataframe **bd**. c("scolforo_simp", "scolforo", "pettersen", "curtis")
+#' @param by.model_sel se TRUE sera utilizado o modelo pre-definido na variavel \strong{model_sel} presente no dataframe \strong{bd}. c("scolforo_simp", "scolforo", "pettersen", "curtis")
 #'
 #' @return Dataframe contendo as variaveis preditas com os modelos inputados
 #'

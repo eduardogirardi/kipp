@@ -19,7 +19,7 @@
 #'
 #' @examples
 #'
-#'  dc <- poly2hi(hb = 0.1,
+#'  dc <- poly2vol(hb = 0.1,
 #'                hf = 25.6,
 #'                h = 36.6,
 #'                dap = 21.58,

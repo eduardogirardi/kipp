@@ -14,8 +14,7 @@
 #'
 #' @examples
 #'
-#'  dc <- cal_var(bd,
-#'                by.assmann = F,
+#'  dc <- pp_ifq(bd,
 #'                cor_area = F,
 #'                im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
 #'                it = c("rf", "talhao", "ciclo", "rotacao"))
@@ -242,8 +241,6 @@ pp_ifq <- function(x,
     tidyr::pivot_wider(names_from = cod, values_from = prop_cod) %>%
     dplyr::ungroup()
 
-  cods <- cods %>%
-    dplyr::rename("Fc" = "F", "Tc" = "T")
 
   #join cods
   x <- x %>%
@@ -276,6 +273,10 @@ pp_ifq <- function(x,
 
 
   #sumariza por talhao
+  #rename codigos
+  cods <- cods %>%
+    dplyr::rename("Fc" = "F", "Tc" = "T")
+
   bystand <- x %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(it)))) %>%
     dplyr::mutate(dt_med = mean(dt_med)) %>%

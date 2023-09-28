@@ -3,21 +3,21 @@
 #' Esta função ira calcular novas variaveis a nivel de arvore e de populacao \cr
 #'
 #' Serão calculadas as variaveis a nivel de arvore:\cr
-#' **dap** - diametro a 1,3m - cm\cr
-#' **b** - area transversal - m²\cr
-#' **h** - altura total - m\cr
+#' \strong{dap} - diametro a 1,3m - cm\cr
+#' \strong{b} - area transversal - m²\cr
+#' \strong{h} - altura total - m\cr
 #' \cr
 #'
 #'  Serão calculadas as variaveis a nivel de populacao:\cr
-#' **area_parc** - area da parcela - m²\cr
-#' **dg** - diametro medio quadratico - cm\cr
-#' **ab** - area basal - m²\cr
-#' **hdom** - altura dominante - m\cr
-#' **ddom** - diametro dominante - cm\cr
-#' **idade** - idade - anos\cr
-#' **covas** - numero de covas - covas/ha\cr
-#' **arvores** - numero de arvores - arvores/ha\cr
-#' **fustes** - numero de fustes - fustes/ha\cr
+#' \strong{area_parc} - area da parcela - m²\cr
+#' \strong{dg} - diametro medio quadratico - cm\cr
+#' \strong{ab} - area basal - m²\cr
+#' \strong{hdom} - altura dominante - m\cr
+#' \strong{ddom} - diametro dominante - cm\cr
+#' \strong{idade} - idade - anos\cr
+#' \strong{covas} - numero de covas - covas/ha\cr
+#' \strong{arvores} - numero de arvores - arvores/ha\cr
+#' \strong{fustes} - numero de fustes - fustes/ha\cr
 #'
 #'
 #'

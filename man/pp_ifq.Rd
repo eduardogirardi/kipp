@@ -28,8 +28,7 @@ Esta função ira processar o IFQ \cr
 }
 \examples{
 
- dc <- cal_var(bd,
-               by.assmann = F,
+ dc <- pp_ifq(bd,
                cor_area = F,
                im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
                it = c("rf", "talhao", "ciclo", "rotacao"))

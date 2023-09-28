@@ -17,6 +17,6 @@ Esta função ainda esta em construcao, por hora acredito que funcione para lm e
 }
 \examples{
 
-glance2(mol)
+glance_log(mol)
 
 }
