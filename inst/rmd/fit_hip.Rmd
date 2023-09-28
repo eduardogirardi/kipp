@@ -75,7 +75,6 @@ coefdt <- function(model, lstest, modelname){
     dplyr::mutate(est = lstest,
            model = modelname) %>% 
     dplyr::select(model, est, tidyselect::everything())
-  
   return(df)
 }
 
