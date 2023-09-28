@@ -18,32 +18,32 @@ um dataframe similar ao csv2 de input com suas variaveis padroniadas
 Esta função le os dados de campo. Os dados devem ser salvos em um arquivo formatdo csv e ter como delimitador o **";"** e **","** para separacao decimal. \cr
 Sao 26 campos obrigatorios e devem estar ordenados conforme a sequencia abaixo: \cr
 \cr
-**atividade** - descricao da atividade \cr
-**rf** - identificacao de regiao florestal \cr
-**talhao** - identificacao do talhao \cr
-**ciclo** - identificacao do ciclo de plantio \cr
-**rotacao** - identificacao da rotacao de plantio \cr
-**dt_med** - data da medicao - dd/mm/yyyy \cr
-**lider** - nome do lider \cr
-**auxiliar** - nome do auxiliar \cr
-**parcela** - dentificacao da parcela \cr
-**tipo** - tipo de medicao \cr
-**forma** - forma da parcela \cr
-**hr_ini** - horario de inicio da medicao - HH:MM:SS \cr
-**hr_fim** - horario de finalizacao da medicao - HH:MM:SS \cr
-**coordX** - Coordenada geografica  \cr
-**coordY** - Coordenada geografica \cr
-**lado1** - Comprimento do lado da parcela -dm \cr
-**lado2** - Comprimento do lado da parcela -dm \cr
-**inc1** - Inclinacao da parcela - ° \cr
-**inc2** - Inclinacao da parcela - ° \cr
-**linha** - numero da linha \cr
-**arvore** - numero da arvore na linha \cr
-**cap** - circunferencia a 1,3m - mm \cr
-**alt** - altura total da arvore - dm \cr
-**cod1** - codigo qualitativo 1 \cr
-**cod2** - codigo qualitativo 2 \cr
-**codQ** - codigo qualitativo de tora \cr
+\strong{atividade} - descricao da atividade \cr
+\strong{rf} - identificacao de regiao florestal \cr
+\strong{talhao} - identificacao do talhao \cr
+\strong{ciclo} - identificacao do ciclo de plantio \cr
+\strong{rotacao} - identificacao da rotacao de plantio \cr
+\strong{dt_med} - data da medicao - dd/mm/yyyy \cr
+\strong{lider} - nome do lider \cr
+\strong{auxiliar} - nome do auxiliar \cr
+\strong{parcela} - dentificacao da parcela \cr
+\strong{tipo} - tipo de medicao \cr
+\strong{forma} - forma da parcela \cr
+\strong{hr_ini} - horario de inicio da medicao - HH:MM:SS \cr
+\strong{hr_fim} - horario de finalizacao da medicao - HH:MM:SS \cr
+\strong{coordX} - Coordenada geografica  \cr
+\strong{coordY} - Coordenada geografica \cr
+\strong{lado1} - Comprimento do lado da parcela -dm \cr
+\strong{lado2} - Comprimento do lado da parcela -dm \cr
+\strong{inc1} - Inclinacao da parcela - ° \cr
+\strong{inc2} - Inclinacao da parcela - ° \cr
+\strong{linha} - numero da linha \cr
+\strong{arvore} - numero da arvore na linha \cr
+\strong{cap} - circunferencia a 1,3m - mm \cr
+\strong{alt} - altura total da arvore - dm \cr
+\strong{cod1} - codigo qualitativo 1 \cr
+\strong{cod2} - codigo qualitativo 2 \cr
+\strong{codQ} - codigo qualitativo de tora \cr
 \cr
 Não importa a nomenclatura dos campos no arquivo csv, mas sim a sua posicao. \cr
 O encording pre definido é o ISO-8859-1 - Latin alphabet \cr
