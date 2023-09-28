@@ -108,7 +108,7 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
   #salva a altura de quebra
   bd <- bd %>%
     dplyr::mutate(h_quebra = dplyr::case_when(cod1 == "Q" | cod2 == "Q" ~ h_obs,
-                                              TRUE ~ 0))
+                                              TRUE ~ NA_real_))
 
   #gera o campo h com as alturas totais (inclusive das quebradas) ordenando observadas e estimadas
   bd <- bd %>%

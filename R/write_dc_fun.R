@@ -19,7 +19,7 @@
 write_dc <- function(bd, path_outputs){
 
   bd <- bd %>%
-    dplyr::mutate(alt = dplyr::case_when(h_quebra > 0 ~ round(h_quebra*10),
+    dplyr::mutate(alt = dplyr::case_when(!is.na(h_quebra) ~ round(h_quebra*10),
                                          TRUE ~ round(h*10)))
 
   #defini o nome das principais variaveis
@@ -56,6 +56,6 @@ write_dc <- function(bd, path_outputs){
                   "hora_ini" = "hr_ini",
                   "hora_fim" = "hr_fim")
 
-  readr::write_csv2(bd, file.path(path_outputs, "dados_campo_hest.csv"), na = ".")
+  readr::write_csv2(bd, path_outputs, na = ".")
 
 }
