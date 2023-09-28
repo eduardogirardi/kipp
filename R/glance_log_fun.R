@@ -10,11 +10,12 @@
 #'
 #' @examples
 #'
-#' glance2(mol)
+#' glance_log(mol)
 #'
 #' @export
 #'
 glance_log <- function(x){
+
   temp <- broom::augment(x) %>%
     mutate(obs = exp(.resid + .fitted),
            fit = exp(.fitted),
