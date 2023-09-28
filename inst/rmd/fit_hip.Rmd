@@ -71,7 +71,7 @@ coefdt <- function(model, lstest, modelname){
   df <- broom::tidy(model, quick = T) %>% 
     dplyr::select(1:2) %>%  
     tidyr::pivot_wider(names_from = term, values_from = estimate) %>% 
-    dplyr::bind_cols(glance2(model)) %>% 
+    dplyr::bind_cols(glance_log(model)) %>% 
     dplyr::mutate(est = lstest,
            model = modelname) %>% 
     dplyr::select(model, est, tidyselect::everything())
@@ -288,7 +288,7 @@ if( !all((essec %in% names(base))) ){
       print(knitr::kable(broom::tidy(maf[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
       cat("\n", sep = "")
       
-      print(knitr::kable(glance2(maf[[k]]), caption = "model statistics"))
+      print(knitr::kable(glance_log(maf[[k]]), caption = "model statistics"))
       cat("\n", sep = "")
       
       psnorm <- plot_norm(maf[[k]], title = "normality of residuals", ncol = 2)
@@ -431,7 +431,7 @@ if(!all((essec %in% names(base)))){
       print(knitr::kable(broom::tidy(mafsim[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
       cat("\n", sep = "")
       
-      print(knitr::kable(glance2(mafsim[[k]]), caption = "model statistics"))
+      print(knitr::kable(glance_log(mafsim[[k]]), caption = "model statistics"))
       cat("\n", sep = "")
       
       psnorm <- plot_norm(mafsim[[k]], title = "normality of residuals", ncol = 2)
@@ -535,7 +535,7 @@ for(k in seq(1:length(curtis))){
   print(knitr::kable(broom::tidy(curtis[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
   cat("\n", sep = "")
   
-  print(knitr::kable(glance2(curtis[[k]]), caption = "model statistics"))
+  print(knitr::kable(glance_log(curtis[[k]]), caption = "model statistics"))
   cat("\n", sep = "")
   
   psnorm <- plot_norm(curtis[[k]], title = "normality of residuals", ncol = 2)
@@ -622,7 +622,7 @@ for(k in seq(1:length(pettersen))){
   print(knitr::kable(broom::tidy(pettersen[[k]]), digits = c(5, 5, 5, 2, 100), caption = "coefficients statistics"))
   cat("\n", sep = "")
   
-  print(knitr::kable(glance2(pettersen[[k]]), caption = "model statistics"))
+  print(knitr::kable(glance_log(pettersen[[k]]), caption = "model statistics"))
   cat("\n", sep = "")
   
   psnorm <- plot_norm(pettersen[[k]], title = "normality of residuals", ncol = 2)
