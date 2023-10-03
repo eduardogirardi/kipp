@@ -225,13 +225,13 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
   x <- x %>%
     dplyr::mutate(id_temp = paste(linha, arvore, fuste, sep = "_")) %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
-    dplyr::mutate(covas_parc = n_distinct(id_temp[!cod1 %in% cod_cova &
+    dplyr::mutate(covas_parc = dplyr::n_distinct(id_temp[!cod1 %in% cod_cova &
                                                     !cod2 %in% cod_cova &
                                                     fuste == 1]),
-                  arvores_parc = n_distinct(id_temp[!cod1 %in% cod_fuste &
+                  arvores_parc = dplyr::n_distinct(id_temp[!cod1 %in% cod_fuste &
                                                       !cod2 %in% cod_fuste &
                                                       fuste == 1]),
-                  fustes_parc = n_distinct(id_temp[!cod1 %in% cod_fuste &
+                  fustes_parc = dplyr::n_distinct(id_temp[!cod1 %in% cod_fuste &
                                                      !cod2 %in% cod_fuste]),
                   covas = round((10000*covas_parc)/max(area_parc),0),
                   arvores = round((10000*arvores_parc)/max(area_parc),0),
