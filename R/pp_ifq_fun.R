@@ -273,11 +273,8 @@ pp_ifq <- function(x,
 
 
   #sumariza por talhao
-  #rename codigos
-  cods <- cods %>%
-    dplyr::rename("Fc" = "F", "Tc" = "T")
-
   bystand <- x %>%
+    dplyr::rename("Fc" = "F", "Tc" = "T") %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(it)))) %>%
     dplyr::mutate(dt_med = mean(dt_med)) %>%
     dplyr::mutate(idade = as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25) %>%
