@@ -42,7 +42,7 @@
 #7 - adiciona numero de fuste
 #8 - calcula densidade de plantio
 
-x <- bd
+
 pp_ifq <- function(x,
                    cor_area = FALSE,
                    im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
