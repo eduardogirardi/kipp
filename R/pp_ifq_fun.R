@@ -42,6 +42,7 @@
 #7 - adiciona numero de fuste
 #8 - calcula densidade de plantio
 
+x <- bd
 pp_ifq <- function(x,
                    cor_area = FALSE,
                    im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
@@ -136,8 +137,8 @@ pp_ifq <- function(x,
   x <- x %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
     dplyr::mutate(ph50 = ph50(h),
-                  hmed = mean(h),
-                  hcv = (sd(h)/mean(h))*100,
+                  hmed = mean(h[h>0]),
+                  hcv = (sd(h[h>0])/mean(h[h>0]))*100,
                   sv = (arvores/covas)*100) %>%
     dplyr::ungroup()
 
