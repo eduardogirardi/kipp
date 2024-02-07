@@ -16,10 +16,10 @@
 #'
 glance_log <- function(x){
   temp <- broom::augment(x) %>%
-    mutate(obs = exp(.resid + .fitted),
-           fit = exp(.fitted),
-           resid = obs - fit,
-           residP = (obs - fit)/obs)
+    dplyr::mutate(obs = exp(.resid + .fitted),
+                  fit = exp(.fitted),
+                  resid = obs - fit,
+                  residP = (obs - fit)/obs)
 
 
   syx <- sqrt(sum(temp$resid**2)/(dim(temp)[[1]]-(1+length(x$coefficients)-1)))
