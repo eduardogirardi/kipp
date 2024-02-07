@@ -12,6 +12,7 @@ RoxygenNote: 7.1.2
 Imports: 
     broom,
     dplyr (>= 1.0.8),
+    DT (>= 0.23),
     ggplot2 (>= 3.3.1),
     janitor (>= 2.1.0),
     knitr (>= 1.39),

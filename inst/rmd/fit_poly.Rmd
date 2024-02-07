@@ -329,7 +329,7 @@ if (any(!is.null(dcom) & dcom == 0)){
     dplyr::group_by(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs) %>%
     tidyr::complete(dcc = dcom) %>% 
     tidyr::fill(idade, especie, matgen, regime, htoco, dap, h, cdap, .direction = "updown") %>%
-    dplyr::arrange(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs, desc(dcc)) %>% 
+    dplyr::arrange(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs, dplyr::desc(dcc)) %>% 
     dplyr::mutate_at(dplyr::vars(hi, dsc), zoo::na.approx, rule = 2) %>% 
     dplyr::arrange(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs, hi) %>% 
     dplyr::relocate(names(cub)) %>% 
@@ -571,8 +571,8 @@ if (nrow(bytree_com) >= minobs){
   
   #database
   db_schu_sc <- dplyr::bind_cols(bytree_com, broom::augment(mol_schu_sc)) %>% 
-    mutate(.fitted_ab = exp(.fitted),
-           .resid_ab = vcc - .fitted_ab)
+    dplyr::mutate(.fitted_ab = exp(.fitted),
+                  .resid_ab = vcc - .fitted_ab)
   
   readr::write_csv2(x = db_schu_sc, file = paste0(basedir, "\\basedata_schumacher_sc.csv"))
   
@@ -669,7 +669,7 @@ ggplot2::ggplot(data = pcub, ggplot2::aes(x = hih, y = did, color = casca)) +
   ggplot2::geom_point(alpha = .1) +
   ggplot2::stat_smooth(method="lm", se=TRUE, fill=NA,
                        formula=y ~ stats::poly(x, 5, raw=TRUE), size = 1.2) +
-  ggplot2::theme_minimal(base_size = 16) %+replace% ggplot2::theme(legend.title=element_blank(),
+  ggplot2::theme_minimal(base_size = 16) %+replace% ggplot2::theme(legend.title = ggplot2::element_blank(),
                                                                    legend.position = "bottom")
 
 ```
@@ -684,7 +684,7 @@ mol_poly <- cubor %>%
   dplyr::filter(purrr::map_dbl(data, nrow) >= minobs) %>% 
   dplyr::mutate(mol_poly_cc = purrr::map(data, ~ lm(did_cc ~ hih + I(hih^2) + I(hih^3) + I(hih^4) + I(hih^5), data = .)),
                 mol_poly_sc = purrr::map(data, ~ lm(did_sc ~ hih + I(hih^2) + I(hih^3) + I(hih^4) + I(hih^5), data = .))) %>% 
-  arrange(cdap)
+  dplyr::arrange(cdap)
 
 #modelo poli
 saveRDS(mol_poly, file = paste0(modeldir, "\\models_poly.rds"))
@@ -797,7 +797,7 @@ ggplot2::ggplot(data = cubor, ggplot2::aes(x = hih, y = did_cc, color = cdap)) +
   ggplot2::geom_point(alpha = .1) +
   ggplot2::stat_smooth(method="lm", se=TRUE, fill=NA,
                        formula=y ~ stats::poly(x, 5, raw=TRUE), size = 0.8) +
-  ggplot2::theme_minimal(base_size = 16) %+replace% ggplot2::theme(legend.title=element_blank(),
+  ggplot2::theme_minimal(base_size = 16) %+replace% ggplot2::theme(legend.title = ggplot2::element_blank(),
                                                      legend.position = "bottom")
 
 ```
@@ -837,7 +837,7 @@ stats_vol <- db_poly_vol_cc %>%
                    sigmap = (sigma/mean(vcc)),
                    rmse = sqrt(mean((.resid)^2)),
                    rmspe = sqrt(mean((.residp)^2)),
-                   nobs = n())
+                   nobs = dplyr::n())
 
 print(knitr::kable(stats_vol,
                      digits = c(1, 5, 5, 5, 5, 0)))
@@ -965,7 +965,7 @@ ggplot2::ggplot(data = cubor, ggplot2::aes(x = hih, y = did_sc, color = cdap)) +
   ggplot2::geom_point(alpha = .1) +
   ggplot2::stat_smooth(method="lm", se=TRUE, fill=NA,
                        formula=y ~ stats::poly(x, 5, raw=TRUE), size = 0.8) +
-  ggplot2::theme_minimal(base_size = 16) %+replace% ggplot2::theme(legend.title=element_blank(),
+  ggplot2::theme_minimal(base_size = 16) %+replace% ggplot2::theme(legend.title = ggplot2::element_blank(),
                                                      legend.position = "bottom")
 
 ```
@@ -1005,7 +1005,7 @@ stats_vol <- db_poly_vol_sc %>%
                    sigmap = (sigma/mean(vsc)),
                    rmse = sqrt(mean((.resid)^2)),
                    rmspe = sqrt(mean((.residp)^2)),
-                   nobs = n())
+                   nobs = dplyr::n())
 
 print(knitr::kable(stats_vol,
                      digits = c(1, 5, 5, 5, 5, 0)))
