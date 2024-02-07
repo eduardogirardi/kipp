@@ -289,11 +289,11 @@ A cubagem rigorosa é realizada pelo metodo de Smalian:
 
 $v_{i} = [\frac {g_{i} + g_{i+1}}{2}] * {l}_{i}$\
 
-A ponteira da tora com d.p.f. igual 0, é calculada pelo tronco de cone:  
+A ultima tora da arvore  é calculada pelo tronco de cone:  
 
 $v_{i} = \frac{\pi{h}}{3}(R^2 + r^2 + R*r) * {l}_{i}$\
 
-A ultima tora da arvore é calculada pelo volume do cone:  
+A ponteira da tora com d.p.f. igual 0, é calculada pelo volume do cone:  
 
 $v_{i} = \frac{\pi{r^2}}{3} * {l}_{i}$\
   
@@ -382,7 +382,9 @@ cubcom <- cubcom %>%
                 dcom = min(dcc),
                 pcasca = (vcc - vsc)/vcc) %>% 
   dplyr::select(-himax, -dccmin, -dscmin) %>% 
-  dplyr::ungroup()
+  dplyr::ungroup() %>% 
+  dplyr::filter(vcc > 0) %>% 
+  dplyr::filter(vsc > 0)
 
 bytree_com <- cubcom %>% 
   dplyr::group_by(dplyr::across(tidyselect::all_of(nvl_arv))) %>% 
@@ -393,7 +395,9 @@ bytree_com <- cubcom %>%
                    vcc = round(mean(vcc), 4),
                    vsc = round(mean(vsc), 4),
                    pcasca = round(mean(pcasca)*100, 2))%>% 
-  dplyr::ungroup()
+  dplyr::ungroup() %>% 
+  dplyr::filter(vcc > 0) %>% 
+  dplyr::filter(vsc > 0)
   
 DT::datatable(bytree_com, 
               filter = 'top',
