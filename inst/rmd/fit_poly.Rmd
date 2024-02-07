@@ -492,8 +492,8 @@ if (nrow(bytree_com) >= minobs){
   
   #database
   db_schu_cc <- dplyr::bind_cols(bytree_com, broom::augment(mol_schu_cc)) %>% 
-    mutate(.fitted_ab = exp(.fitted),
-           .resid_ab = vcc - .fitted_ab)
+    dplyr::mutate(.fitted_ab = exp(.fitted),
+                  .resid_ab = vcc - .fitted_ab)
   
   readr::write_csv2(x = db_schu_cc, file = paste0(basedir, "\\basedata_schumacher_cc.csv"))
   
@@ -833,7 +833,7 @@ db_poly_vol_cc <- bytree_com  %>%
 
 stats_vol <- db_poly_vol_cc %>% 
   dplyr::group_by(cdap) %>% 
-  dplyr::summarise(sigma = sqrt(sum(.resid^2)/(n()-6)),
+  dplyr::summarise(sigma = sqrt(sum(.resid^2)/(dplyr::n()-6)),
                    sigmap = (sigma/mean(vcc)),
                    rmse = sqrt(mean((.resid)^2)),
                    rmspe = sqrt(mean((.residp)^2)),
@@ -1001,7 +1001,7 @@ db_poly_vol_sc <- bytree_com  %>%
 
 stats_vol <- db_poly_vol_sc %>% 
   dplyr::group_by(cdap) %>% 
-  dplyr::summarise(sigma = sqrt(sum(.resid^2)/(n()-6)),
+  dplyr::summarise(sigma = sqrt(sum(.resid^2)/(dplyr::n()-6)),
                    sigmap = (sigma/mean(vsc)),
                    rmse = sqrt(mean((.resid)^2)),
                    rmspe = sqrt(mean((.residp)^2)),
