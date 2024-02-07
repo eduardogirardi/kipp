@@ -1,0 +1,1072 @@
+---
+title: "Ajuste de Afilamento"
+output:
+  html_document:
+    self_contained: true
+    toc: true
+    toc_float: true
+    toc_depth: 6
+editor_options: 
+  chunk_output_type: inline
+---
+
+![](logo-6.png)\
+ 
+
+**Usuario**:`r  Sys.getenv('USERNAME')`
+
+**Date**: `r format(Sys.time(), '%d %B %Y')`
+
+**Autor**: Eduardo Girardi
+
+\
+
+#### ***Ajuste das equações hipsometricas***
+
+\
+Neste script será realizada a cubagem rigora. Será ajustada 2 equações de volume:\
+\
+\
+
+-   **Schumacher & Hall (1993)**
+
+$ln(v) = \beta_{0} + \beta_{1}*ln(dap) + \beta_{2}*ln(h)$\
+
+-   **Polinomial do 5º grau / Schöepfer (1966)**
+
+$\frac{d}{dap} = \beta_{0} + \beta_{1}*\frac{hi}{h} + \beta_{2}*(\frac{hi}{h})^2 + \beta_{3}*(\frac{hi}{h})^3 + \beta_{4}*(\frac{hi}{h})^4 + \beta_{5}*(\frac{hi}{h})^5$\
+
+\
+\
+
+```{r definefun, include=FALSE}
+
+aj_pvalue <- function(x){
+  vc <- dplyr::case_when(x < 0.001 ~  "<0.001",
+                  TRUE ~ as.character(round(x, 3)))
+  return(vc)
+}
+
+coefdt <- function(model, modelname){
+  df <- broom::tidy(model, quick = T) %>% 
+    dplyr::mutate(term = paste0("b", 0:(length(coef(model)) -1))) %>% 
+    dplyr::select(1:2) %>%  
+    tidyr::pivot_wider(names_from = term, values_from = estimate) %>% 
+    dplyr::bind_cols(glance_log(model)) %>% 
+    dplyr::mutate(model = modelname) %>% 
+    dplyr::select(model, tidyselect::everything())
+  return(df)
+}
+
+tidy2 <- function(x, sufix){
+  df <- broom::tidy(x) %>%
+    dplyr::select(term, estimate) %>%
+    tidyr::pivot_wider(names_from = term,
+                values_from =  estimate)
+  colnames(df) <- paste0("b", 0:(length(coef(x)) -1), sufix)
+  return(df)
+}
+
+ff <- function(b0, b1, b2, b3, b4, b5){
+  ff <- b0^2 + (b0*b1) + (b1^2 + 2*b0*b2)/3 + (b0*b3 + b1*b2)/2 +
+    (2*b0*b4 + 2*b1*b3 + b2^2)/5 + (b0*b5 + b1*b4 + b2*b3)/3 +
+    (2*b1*b5 + 2*b2*b4 + b3^2)/7 + (b2*b5 + b3*b4)/4 +
+    (2*b3*b5 + b4^2)/9 + (b4*b5)/5 + b5^2/11
+  return(ff)
+}
+
+
+plot_resid_poly <- function(x,  ncol = NULL, nrow = NULL, title = NULL) {
+
+  lstResidP <- list()
+  
+  #resid x fitted
+  Presid_fit <- ggplot2::ggplot(x, ggplot2::aes(x = .fitted, y = .residp*100)) +
+    ggplot2::geom_point(alpha = 0.2) +
+    ggplot2::geom_hline(yintercept = 0, size = 0.7) +
+    ggplot2::labs(x = "fitted", y = "resid%") +
+    ggplot2::ylim(-1*max(abs(x$.residp*100)),
+                  max(abs(x$.residp*100)))+
+    ggplot2::theme_minimal()
+  lstResidP[["Presid_fit"]] <- Presid_fit
+  
+  #resid x observed
+  Presid_obs <- ggplot2::ggplot(x, ggplot2::aes(x = .resid + .fitted, y = .residp*100)) +
+    ggplot2::geom_point(alpha = 0.2) +
+    ggplot2::geom_hline(yintercept = 0, size = 0.7) +
+    ggplot2::labs(x = "observed", y = "resid%") +
+    ggplot2::ylim(-1*max(abs(x$.residp*100)),
+                  max(abs(x$.residp*100)))+
+    ggplot2::theme_minimal()
+  
+  lstResidP[["Presid_obs"]] <- Presid_obs
+  
+  #stard resid
+  Sresid_fit <- ggplot2::ggplot(x, ggplot2::aes(x = .fitted, y = .std.resid)) +
+    ggplot2::geom_point(alpha = 0.2) +
+    ggplot2::geom_hline(yintercept = 0, size = 0.7) +
+    ggplot2::geom_hline(yintercept = c(-2,2), size = 0.7, linetype = "dotdash") +
+    ggplot2::labs(x = "fitted", y = "std resid") +
+    ggplot2::ylim(-1*max(abs(x$.std.resid)),
+                  max(abs(x$.std.resid))) +
+    ggplot2::theme_minimal()
+  
+  lstResidP[["Sresid_fit"]] <- Sresid_fit
+  
+  #obs x fitted
+  obs_fit <- ggplot2::ggplot(x, ggplot2::aes(x = .fitted, y = .resid + .fitted)) +
+    ggplot2::geom_point(alpha = 0.2) +
+    ggplot2::geom_abline(intercept = 0, slope = 1, size = 0.7) +
+    ggplot2::labs(x = "fitted", y = "observed") +
+    ggplot2::lims(x = c(min((x$.resid + x$.fitted), x$.fitted),
+                        max((x$.resid + x$.fitted), x$.fitted)),
+                  y = c(min((x$.resid + x$.fitted), x$.fitted),
+                        max((x$.resid + x$.fitted), x$.fitted))) +
+    ggplot2::theme_minimal()
+  
+  lstResidP[["obs_fit"]] <- obs_fit
+
+Presume <- patchwork::wrap_plots(lstResidP, ncol = ncol, nrow = nrow)
+
+lstResidP[["resume"]] <- Presume
+
+return(lstResidP)
+}
+
+plot_resid_ev_poly <- function(x, exp_variables = NULL, ncol = NULL, nrow = NULL, title = NULL) {
+
+  lstVI <- as.list(exp_variables)
+  
+  #create residue of each gaph
+
+  #plot_fun
+  #funcao para plotagem baseada no fortify
+  plot_data_column = function (dfcol, data) {
+    ggplot2::ggplot(data,
+                    ggplot2::aes_string(x = dfcol, y = ".residp")) +
+      ggplot2::geom_point(alpha =0.3) +
+      ggplot2::geom_hline(yintercept = 0, size = 0.7) +
+      ggplot2::labs(x = dfcol, y = "resid%") +
+      ggplot2::ylim(-1*max(abs(data$.residp)),
+                    max(abs(data$.residp)))+
+      ggplot2::theme_minimal()
+  }
+
+  #apply fun
+  lstResidI <- lapply(lstVI, plot_data_column, data = x)
+  names(lstResidI) <- lstVI
+
+  #resume plot
+  resume <- patchwork::wrap_plots(lstResidI, ncol = ncol, nrow = nrow) 
+  lstResidI[["resume"]] <- resume
+
+  return(lstResidI)
+}
+
+```
+
+```{r write_folder, include=FALSE}
+
+#create folders
+coefsdir <- paste0(path_outputs,"\\01_coefs")
+dir.create(coefsdir, recursive = T, showWarnings = F)
+
+modeldir <- paste0(path_outputs,"\\02_model")
+dir.create(modeldir, recursive = T, showWarnings = F)
+
+basedir <- paste0(path_outputs,"\\03_database")
+dir.create(basedir, recursive = T, showWarnings = F)
+
+
+```
+
+```{r criacao_variaveis, include=FALSE}
+#corrigi valores zerados no diametro
+cub <- cub %>%
+  dplyr::mutate(dcc1 = dplyr::case_when(dcc1 == 0 & dcc2 > 0 ~ dcc2,
+                                        TRUE ~ dcc1),
+                dcc2 = dplyr::case_when(dcc2 == 0 & dcc1 > 0 ~ dcc1,
+                                        TRUE ~ dcc2),
+                dsc1 = dplyr::case_when(dsc1 == 0 & dsc2 > 0 ~ dsc2,
+                                        TRUE ~ dsc1),
+                dsc2 = dplyr::case_when(dsc2 == 0 & dsc1 > 0 ~ dsc1,
+                                        TRUE ~ dsc2))
+
+#calcula o valor do dcc e dsc
+cub <- cub %>% 
+  dplyr::rowwise() %>% 
+  dplyr::mutate(dcc = mean(c(dcc1, dcc2), na.rm = T),
+                dsc = mean(c(dsc1, dsc2), na.rm = T))
+
+#adiciona classe diametrica
+cub <- cub %>% 
+  dplyr::mutate(cdap = cut(dap, qc), .after = dap)
+
+
+```
+
+------------------------------------------------------------------------
+
+#### ***Parametros***
+
+\
+O modelo de Schöepfer sera dividido em classes diametrica conforme parametrizado [cm]:\
+
+```{r quebras_dap_tb, echo=FALSE, warning = F, message = F}
+
+#gera uma tabela com as classes diametricas
+lqc <- levels(cub$cdap)
+
+qct <- data.frame(classe = paste0("p",1:length(lqc)),
+                  dap = lqc)
+
+knitr::kable(qct)
+
+```
+
+\
+
+\
+O diametro comercial parametrizado [cm]:\
+***`r ifelse(is.null(dcom), "Nao parametrizado", dcom)`***\
+\
+A altura de toco parametrizada [m]:\
+***`r ifelse(is.null(at), "Nao parametrizado", at)`***\
+\
+
+------------------------------------------------------------------------
+
+#### ***Exploratorio***  
+\
+\
+
+```{r exploratorio, echo=FALSE, warning = F, message = F}
+#variaveis de estrato
+estrato <- c("especie", "matgen", "regime")
+#variaveis nivel arvore
+nvl_arv <- c("rf", "talhao", "ciclo", "rotacao", "arvore", "dt_med", "idade",  "especie", "matgen", "regime", "dap", "cdap", "h")
+
+cub_nvl_arv <- cub %>% 
+  dplyr::select(tidyselect::all_of(nvl_arv)) %>% 
+  dplyr::distinct_all()
+
+explor <- cub_nvl_arv %>% 
+  dplyr::group_by(dplyr::across(tidyselect::all_of(estrato))) %>% 
+  dplyr::summarise( dmin = min(dap), 
+                    dmed = mean(dap),
+                    dmax = max(dap),
+                    sd = sd(dap), 
+                    hmin = min(h), 
+                    hmed = mean(h),
+                    hmax = max(h), 
+                    sh = sd(h),
+                    idademin = min(idade),
+                    idademax = max(idade),
+                    n_arvores = dplyr::n())
+
+
+knitr::kable(explor,
+             digits = 2)
+
+explor_p <- ggplot2::ggplot(data = cub_nvl_arv, ggplot2::aes(x = dap, y = h)) +
+  ggplot2::geom_point(alpha = .3) +
+  ggplot2::theme_minimal()
+
+print(explor_p)
+
+
+```
+
+\
+
+------------------------------------------------------------------------
+
+
+#### ***Cubagem***
+
+\
+A cubagem rigorosa é realizada pelo metodo de Smalian:  
+
+$v_{i} = [\frac {g_{i} + g_{i+1}}{2}] * {l}_{i}$\
+
+A ponteira da tora com d.p.f. igual 0, é calculada pelo tronco de cone:  
+
+$v_{i} = \frac{\pi{h}}{3}(R^2 + r^2 + R*r) * {l}_{i}$\
+
+A ultima tora da arvore é calculada pelo volume do cone:  
+
+$v_{i} = \frac{\pi{r^2}}{3} * {l}_{i}$\
+  
+\
+
+O volume é limitado pelo diametro comercial da variavel **dcom** e altura de toco da variavel **at**, quando estes **NULL** sera utilizado o limites do arquivo de input
+\
+\
+\
+
+```{r volcom, echo=FALSE, warning = F, message = F}
+
+cubcom <- cub
+
+if (any(!is.null(dcom) & dcom == 0)){
+  
+  #completa a base com a ponteira da arvore
+  cubcom <- cubcom %>% 
+    dplyr::group_by(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs) %>%
+    tidyr::complete(hi = h) %>% 
+    tidyr::fill(idade, especie, matgen, regime, htoco, dap, h, cdap, .direction = "updown") %>%
+    dplyr::mutate(dcc = 0,
+                  dsc = 0)%>% 
+    dplyr::arrange(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs, hi) %>% 
+    dplyr::relocate(names(cub)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::filter(dcc >= dcom)
+  
+} else if (any(!is.null(dcom) & dcom > 0)) {
+  
+  #completa a base com a altura no diametro comercial
+  cubcom <- cubcom %>% 
+    dplyr::group_by(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs) %>%
+    tidyr::complete(dcc = dcom) %>% 
+    tidyr::fill(idade, especie, matgen, regime, htoco, dap, h, cdap, .direction = "updown") %>%
+    dplyr::arrange(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs, desc(dcc)) %>% 
+    dplyr::mutate_at(dplyr::vars(hi, dsc), zoo::na.approx, rule = 2) %>% 
+    dplyr::arrange(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs, hi) %>% 
+    dplyr::relocate(names(cub)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::filter(dcc >= dcom)
+  
+}
+
+
+if (!is.null(at)){
+  
+  #completa a base com a altura de toco
+  cubcom <- cubcom %>% 
+    dplyr::group_by(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs) %>%
+    tidyr::complete(hi = at) %>% 
+    tidyr::fill(idade, especie, matgen, regime, htoco, dap, h, cdap, .direction = "downup") %>%
+    dplyr::arrange(rf, talhao, ciclo, rotacao, arvore, dt_med, coleta, obs, hi) %>% 
+    dplyr::mutate_at(dplyr::vars(dcc, dsc), zoo::na.approx, rule = 2) %>% 
+    dplyr::relocate(names(cub)) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::filter(hi >= at)
+  
+}
+
+
+
+
+cubcom <- cubcom %>% 
+  dplyr::mutate(gcc = ((dcc^2)*pi)/40000,
+                gsc = ((dsc^2)*pi)/40000) %>% 
+  dplyr::group_by(dplyr::across(tidyselect::all_of(nvl_arv))) %>% 
+  dplyr::mutate(himax = max(hi),
+                dccmin = min(dcc),
+                dscmin = min(dsc),
+                l = dplyr::case_when(hi == himax ~ 0,
+                                     TRUE ~ dplyr::lead(hi, default = 0) - hi),
+                lt = sum(l),
+                vicc = dplyr::case_when(dplyr::lead(dcc) == 0 ~ (gcc * l)/3 ,
+                                        dplyr::lead(dcc) == dccmin ~ ((gcc + dplyr::lead(gcc, default = 0)) + 
+                                                                        sqrt((gcc * dplyr::lead(gcc, default = 0))))/3 * l,
+                                        TRUE ~((dplyr::lead(gcc, default = 0) + gcc)/2) * l),
+                visc = dplyr::case_when(dplyr::lead(dsc) == 0 ~ (gsc * l)/3 ,
+                                        dplyr::lead(dsc) == dscmin ~ ((gsc + dplyr::lead(gsc, default = 0)) + 
+                                                                        sqrt((gsc * dplyr::lead(gsc, default = 0))))/3 * l,
+                                        TRUE ~((dplyr::lead(gsc, default = 0) + gsc)/2) * l),
+                vcc = sum(vicc),
+                vsc = sum(visc),
+                htoco = min(hi),
+                hcom = max(hi),
+                dcom = min(dcc),
+                pcasca = (vcc - vsc)/vcc) %>% 
+  dplyr::select(-himax, -dccmin, -dscmin) %>% 
+  dplyr::ungroup()
+
+bytree_com <- cubcom %>% 
+  dplyr::group_by(dplyr::across(tidyselect::all_of(nvl_arv))) %>% 
+  dplyr::summarise(htoco = round(mean(htoco), 2),
+                   hcom = round(mean(hcom), 2),
+                   dcom = round(mean(dcom), 2),
+                   lt = round(mean(lt), 2),
+                   vcc = round(mean(vcc), 4),
+                   vsc = round(mean(vsc), 4),
+                   pcasca = round(mean(pcasca)*100, 2))%>% 
+  dplyr::ungroup()
+  
+DT::datatable(bytree_com, 
+              filter = 'top',
+              colnames = c("dap[cm]" = 11,
+                           "h[m]" = 13,
+                           "htoco[m]" = 14,
+                           "hcom[m]" = 15,
+                           "dcom[cm]" = 16,
+                           "lt[m]" = 17,
+                           "vcc[m³]" = 18,
+                           "vsc[m³]" = 19,
+                           "pcasca[%]" = 20),
+              rownames = F,
+              options = list(pageLength = 5, autoWidth = TRUE, scrollX = T))
+
+
+```
+
+\
+
+------------------------------------------------------------------------
+
+
+#### ***Schumacher***
+
+\
+Ajuste do modelo de Schumacher & Hall (1993).
+\
+Sera realizado o ajuste do volume. O volume da arove será limitado pelo diametro comercial da variavel **dcom** e altura de toco da variavel **at**, quando estes **NULL** sera utilizado o limites do arquivo de input.
+\
+Apenas será realizado o ajuste quando a base houver mais de 15 arvores.
+\
+\
+
+------------------------------------------------------------------------
+
+
+##### ***Volume com casca***
+
+\
+
+```{r mol_schu_cc, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+# numero minimo de arvores
+minobs <- 15
+
+
+#fit shumacher
+
+if (nrow(bytree_com) < minobs){
+  
+  print("Nao sera realizado o ajuste. Numero de observações insuficiente")
+  
+} else{
+  
+  #fitmodel
+  mol_schu_cc <- lm(log(vcc) ~ log(dap) + log(h), data = bytree_com)
+  
+  
+  #table estatisticas dos coeficientes
+  print(knitr::kable(broom::tidy(mol_schu_cc) %>% 
+                       dplyr::mutate(term = c("b0", "b1", "b2"),
+                                     p.value = aj_pvalue(p.value)),
+                     digits = c(5, 5, 5, 2), 
+                     caption = "coefficients statistics"))
+  cat("\n", sep = "")
+  
+  #table estatisticas do ajuste
+  print(knitr::kable(glance_log(mol_schu_cc), caption = "model statistics"))
+  cat("\n", sep = "")
+  
+  #graficos de dispersao do residuo
+  pr <- plot_resid(mol_schu_cc, delog = T)
+  print(pr$Presid_fit)
+  print(pr$Presid_obs)
+  print(pr$Sresid_obs)
+  print(pr$obs_fit)
+  
+  pr2 <- plot_resid_ev(mol_schu_cc, bytree_com, exp_variables = c("dap", "h"))
+  print(pr2$dap)
+  print(pr2$h)
+  
+  pr3 <- plot_dispersion(mol_schu_cc, bytree_com, exp_variables = c("dap", "h"), delog = T)
+  print(pr3$dap)
+  print(pr3$h)
+  
+  cat("  \n\n  __________________  ", sep = "")
+  
+}
+
+```
+
+```{r mol_schu_cc_writefiles, echo=FALSE, warning = F, message = F}
+
+if (nrow(bytree_com) >= minobs){
+  
+  #database
+  db_schu_cc <- dplyr::bind_cols(bytree_com, broom::augment(mol_schu_cc)) %>% 
+    mutate(.fitted_ab = exp(.fitted),
+           .resid_ab = vcc - .fitted_ab)
+  
+  readr::write_csv2(x = db_schu_cc, file = paste0(basedir, "\\basedata_schumacher_cc.csv"))
+  
+  #coef
+  coef_schu_cc <- coefdt(mol_schu_cc, "schumacher_cc")
+  
+  readr::write_csv2(x = coef_schu_cc, file = paste0(coefsdir, "\\coefs_schumacher_cc.csv"))
+  
+  ### models
+  saveRDS(mol_schu_cc, file = paste0(modeldir, "\\models_schumacher_cc.rds"))
+}
+
+```
+
+\
+
+##### ***Volume sem casca***
+
+\
+
+```{r mol_schu_sc, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#fit shumacher
+
+if (nrow(bytree_com) < minobs){
+  
+  print("Nao sera realizado o ajuste. Numero de observações insuficiente")
+  
+} else{
+  
+  #fitmodel
+  mol_schu_sc <- lm(log(vsc) ~ log(dap) + log(h), data = bytree_com)
+  
+  
+  #table estatisticas dos coeficientes
+  print(knitr::kable(broom::tidy(mol_schu_sc) %>% 
+                       dplyr::mutate(term = c("b0", "b1", "b2"),
+                                     p.value = aj_pvalue(p.value)),
+                     digits = c(5, 5, 5, 2), 
+                     caption = "coefficients statistics"))
+  cat("\n", sep = "")
+  
+  #table estatisticas do ajuste
+  print(knitr::kable(glance_log(mol_schu_sc), caption = "model statistics"))
+  cat("\n", sep = "")
+  
+  #graficos de dispersao do residuo
+  pr <- plot_resid(mol_schu_sc, delog = T)
+  print(pr$Presid_fit)
+  print(pr$Presid_obs)
+  print(pr$Sresid_obs)
+  print(pr$obs_fit)
+  
+  pr2 <- plot_resid_ev(mol_schu_sc, bytree_com, exp_variables = c("dap", "h"))
+  print(pr2$dap)
+  print(pr2$h)
+  
+  pr3 <- plot_dispersion(mol_schu_sc, bytree_com, exp_variables = c("dap", "h"), delog = T)
+  print(pr3$dap)
+  print(pr3$h)
+  
+  cat("  \n\n  __________________  ", sep = "")
+  
+}
+
+
+
+
+
+```
+
+```{r mol_schu_sc_writefiles, echo=FALSE, warning = F, message = F}
+
+if (nrow(bytree_com) >= minobs){
+  
+  #database
+  db_schu_sc <- dplyr::bind_cols(bytree_com, broom::augment(mol_schu_sc)) %>% 
+    mutate(.fitted_ab = exp(.fitted),
+           .resid_ab = vcc - .fitted_ab)
+  
+  readr::write_csv2(x = db_schu_sc, file = paste0(basedir, "\\basedata_schumacher_sc.csv"))
+  
+  #coef
+  coef_schu_sc <- coefdt(mol_schu_sc, "schumacher_sc")
+  
+  readr::write_csv2(x = coef_schu_sc, file = paste0(coefsdir, "\\coefs_schumacher_sc.csv"))
+  
+  ### models
+  saveRDS(mol_schu_sc, file = paste0(modeldir, "\\models_schumacher_sc.rds"))
+}
+
+```
+
+
+#### ***Schöepfer***
+
+\
+Ajuste do modelo de Schöepfer (1966).  
+\
+Os dados simulados nao serão utilizados no ajuste.  
+\
+O modelo sera particionado conforme os limites do parametro ***qc***.   
+\
+Apenas será realizado o ajuste quando o numero de observações de cada classe for >= 15.
+\
+
+```{r volor, echo=FALSE, warning = F, message = F}
+
+cubor <- cub %>%
+  dplyr::mutate(gcc = ((dcc^2)*pi)/40000,
+                gsc = ((dsc^2)*pi)/40000) %>% 
+  dplyr::group_by(dplyr::across(tidyselect::all_of(nvl_arv))) %>% 
+  dplyr::mutate(himax = max(hi),
+                dccmin = min(dcc),
+                dscmin = min(dsc),
+                l = dplyr::case_when(hi == himax ~ 0,
+                                     TRUE ~ dplyr::lead(hi, default = 0) - hi),
+                lt = sum(l),
+                vicc = dplyr::case_when(dplyr::lead(dcc) == 0 ~ (gcc * l)/3 ,
+                                        dplyr::lead(dcc) == dccmin ~ ((gcc + dplyr::lead(gcc, default = 0)) + 
+                                                                        sqrt((gcc * dplyr::lead(gcc, default = 0))))/3 * l,
+                                        TRUE ~((dplyr::lead(gcc, default = 0) + gcc)/2) * l),
+                visc = dplyr::case_when(dplyr::lead(dsc) == 0 ~ (gsc * l)/3 ,
+                                        dplyr::lead(dsc) == dscmin ~ ((gsc + dplyr::lead(gsc, default = 0)) + 
+                                                                        sqrt((gsc * dplyr::lead(gsc, default = 0))))/3 * l,
+                                        TRUE ~((dplyr::lead(gsc, default = 0) + gsc)/2) * l),
+                vcc = sum(vicc),
+                vsc = sum(visc),
+                htoco = min(hi),
+                hcom = max(hi),
+                dcom = min(dcc),
+                pcasca = (vcc - vsc)/vcc) %>% 
+  dplyr::select(-himax, -dccmin, -dscmin) %>% 
+  dplyr::ungroup()
+
+
+#variaveis para ajuste
+cubor <- cubor %>% 
+  dplyr::mutate(did_cc = dcc/dap,
+         did_sc = dsc/dap,
+         hih = hi/h)
+
+
+#convertendo para nivel arvore
+bytree_or <- cubor %>%
+  dplyr::group_by(dplyr::across(tidyselect::all_of(nvl_arv))) %>% 
+  dplyr::summarise(htoco = round(mean(htoco), 2),
+                   hcom = round(mean(hcom), 2),
+                   dcom = round(mean(dcom), 2),
+                   lt = round(mean(lt), 2),
+                   vcc = round(mean(vcc), 4),
+                   vsc = round(mean(vsc), 4),
+                   pcasca = round(mean(pcasca)*100, 2))%>% 
+  dplyr::ungroup()
+
+
+
+```
+
+##### ***Perfil de afilamento***
+
+```{r plot_afilamento, echo=FALSE, warning = F, message = F, fig.asp = 0.4, fig.width = 14, fig.align = "center", results='asis'}
+
+pcub <- cubor %>% 
+  tidyr::pivot_longer(cols = c("did_cc", "did_sc"),
+               names_to = "casca",
+               values_to = "did") %>% 
+   dplyr::mutate(casca = dplyr::case_when(casca == "did_cc" ~ "Com casca",
+                                          casca == "did_sc" ~ "Sem casca",))
+  
+
+ggplot2::ggplot(data = pcub, ggplot2::aes(x = hih, y = did, color = casca)) +
+  ggplot2::geom_point(alpha = .1) +
+  ggplot2::stat_smooth(method="lm", se=TRUE, fill=NA,
+                       formula=y ~ stats::poly(x, 5, raw=TRUE), size = 1.2) +
+  ggplot2::theme_minimal(base_size = 16) %+replace% ggplot2::theme(legend.title=element_blank(),
+                                                                   legend.position = "bottom")
+
+```
+
+
+```{r fit_poly, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#fit models
+mol_poly <- cubor %>%
+  dplyr::group_by(cdap) %>% 
+  tidyr::nest() %>%
+  dplyr::filter(purrr::map_dbl(data, nrow) >= minobs) %>% 
+  dplyr::mutate(mol_poly_cc = purrr::map(data, ~ lm(did_cc ~ hih + I(hih^2) + I(hih^3) + I(hih^4) + I(hih^5), data = .)),
+                mol_poly_sc = purrr::map(data, ~ lm(did_sc ~ hih + I(hih^2) + I(hih^3) + I(hih^4) + I(hih^5), data = .))) %>% 
+  arrange(cdap)
+
+#modelo poli
+saveRDS(mol_poly, file = paste0(modeldir, "\\models_poly.rds"))
+
+#base de coeficientes e estatisticas
+coefs_poly <- mol_poly %>% 
+  dplyr::mutate(coef_cc = purrr::map(mol_poly_cc, tidy2, ""),
+                coef_sc = purrr::map(mol_poly_sc, tidy2, ""),
+                met_cc = purrr::map(mol_poly_cc, glance2),
+                met_sc = purrr::map(mol_poly_sc, glance2)) %>% 
+  dplyr::select(-mol_poly_cc, - mol_poly_sc, -data) %>%
+  tidyr::pivot_longer(cols = -cdap,
+                      names_to = c(".value", "casca"),
+                      names_pattern = "(.*)_(.*)") %>% 
+  tidyr::unnest() %>% 
+  dplyr::mutate(ff = ff(b0, b1, b2, b3, b4, b5), .after = b5)
+
+readr::write_csv2(x = coefs_poly, file = paste0(coefsdir, "\\coefs_poly.csv"))
+
+```
+
+------------------------------------------------------------------------
+
+
+##### ***Ajuste afilamento com casca***
+
+\
+\
+
+```{r mol_poly_cc, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#base dados cc
+db_poly_cc <- mol_poly %>% 
+  dplyr::mutate(aug_cc = purrr::map(mol_poly_cc, broom::augment),
+                coef_cc = purrr::map(mol_poly_cc, tidy2, "_cc")) %>% 
+  dplyr::select(-mol_poly_cc, - mol_poly_sc) %>%
+  tidyr::unnest() %>% 
+  dplyr::mutate(.residp = .resid/did_cc, .after = .resid) %>%
+  dplyr::filter(did_cc != 0)
+
+
+for(k in mol_poly$cdap){
+  
+  sub_mol_poly <- mol_poly %>% 
+    dplyr::filter(cdap == k)
+  
+  sub_db_poly <- db_poly_cc %>% 
+    dplyr::filter(cdap == k)
+  
+  cat("\n######", k, "\n")
+  
+  print(knitr::kable(broom::tidy(sub_mol_poly$mol_poly_cc[[1]]) %>%  
+                     dplyr::mutate(term = c("b0", "b1", "b2", "b3", "b4", "b5"),
+                                     p.value = aj_pvalue(p.value)),
+                     digits = c(5, 5, 5, 2), 
+                     caption = "coefficients statistics"))
+  cat("\n", sep = "")
+  
+  print(knitr::kable(glance2(sub_mol_poly$mol_poly_cc[[1]]), caption = "model statistics"))
+  cat("\n", sep = "")
+  
+  psresid <- plot_resid_poly(sub_db_poly)
+  print(psresid$Presid_fit )
+  print(psresid$Presid_obs )
+  print(psresid$Sresid_fit)
+  print(psresid$obs_fit)
+  
+  psresidVI <- plot_resid_ev_poly(x = sub_db_poly, exp_variables = c("dap"))
+  print(psresidVI$dap)
+  
+  cat("  \n\n  __________________  ", sep = "")
+}
+
+
+
+```
+
+###### ***Resumo***
+
+```{r resumo_cc, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+print(knitr::kable(coefs_poly %>% 
+                    dplyr::filter(casca == "cc") %>% 
+                     dplyr::select(c(1, 3:13, 22)),
+                     digits = c(1, 1, 5, 5, 5, 5, 5, 5, 3, 3, 4, 4, 0), 
+                     caption = "resumos coefs"))
+cat("\n", sep = "")
+
+
+p1 <- ggplot2::ggplot(coefs_poly %>% 
+                    dplyr::filter(casca == "cc"), 
+                    ggplot2::aes(x = cdap, y = ff)) +
+  ggplot2::geom_point(alpha = 0.5) +
+  ggplot2::geom_line(group=1, alpha = 0.3) +
+  ggplot2::labs(x = "classe diametrica", y = "fator de forma") +
+  ggplot2::theme_minimal()
+
+print(p1)
+cat("\n", sep = "")
+
+
+```
+
+
+
+```{r plot_afilamento_cc, echo=FALSE, warning = F, message = F, fig.asp = 0.4, fig.width = 14, fig.align = "center", results='asis'}
+
+
+ggplot2::ggplot(data = cubor, ggplot2::aes(x = hih, y = did_cc, color = cdap)) +
+  ggplot2::geom_point(alpha = .1) +
+  ggplot2::stat_smooth(method="lm", se=TRUE, fill=NA,
+                       formula=y ~ stats::poly(x, 5, raw=TRUE), size = 0.8) +
+  ggplot2::theme_minimal(base_size = 16) %+replace% ggplot2::theme(legend.title=element_blank(),
+                                                     legend.position = "bottom")
+
+```
+
+
+------------------------------------------------------------------------
+
+
+##### ***Aplicação volume com casca***
+
+\
+Sera realizado a aplicação da revolução da integral da função de afilamento para estimativa do volume comercial. O volume comercial da arove será limitado pelo diametro comercialcom casca da variavel **dcom** e altura de toco da variavel **at**, quando estes **NULL** sera utilizado o limites do arquivo de input.
+
+
+```{r vol_poly_cc, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#alinha coefs
+coefs_temp <- mol_poly %>% 
+  dplyr::mutate(coef_cc = purrr::map(mol_poly_cc, tidy2, "")) %>% 
+  dplyr::select(-mol_poly_cc, - mol_poly_sc, -data) %>%
+  tidyr::unnest()
+
+#base dados cc
+db_poly_vol_cc <- bytree_com  %>% 
+  dplyr::inner_join(coefs_temp) %>% 
+  dplyr::rowwise() %>% 
+  dplyr::mutate(.fitted = poly2vol(htoco, hcom, h, dap, b0, b1, b2, b3, b4, b5)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(.resid = vcc - .fitted,
+                .residp = .resid / vcc,
+                .std.resid = 0.1)
+
+
+stats_vol <- db_poly_vol_cc %>% 
+  dplyr::group_by(cdap) %>% 
+  dplyr::summarise(sigma = sqrt(sum(.resid^2)/(n()-6)),
+                   sigmap = (sigma/mean(vcc)),
+                   rmse = sqrt(mean((.resid)^2)),
+                   rmspe = sqrt(mean((.residp)^2)),
+                   nobs = n())
+
+print(knitr::kable(stats_vol,
+                     digits = c(1, 5, 5, 5, 5, 0)))
+
+
+for(k in levels(db_poly_vol_cc$cdap)){
+
+  sub_stats_vol <- stats_vol %>%
+    dplyr::filter(cdap == k)
+
+  sub_db_poly <- db_poly_vol_cc %>%
+    dplyr::filter(cdap == k)
+
+  cat("\n######", k, "\n")
+
+  print(knitr::kable(sub_stats_vol,
+                     digits = c(1, 5, 5, 5, 5, 0),
+                    caption = "model statistics"))
+  cat("\n", sep = "")
+
+  psresid <- plot_resid_poly(sub_db_poly)
+  print(psresid$Presid_fit )
+  print(psresid$Presid_obs )
+  print(psresid$obs_fit)
+
+  psresidVI <- plot_resid_ev_poly(x = sub_db_poly, exp_variables = c("dap"))
+  print(psresidVI$dap)
+
+  cat("  \n\n  __________________  ", sep = "")
+}
+
+
+
+```
+
+
+------------------------------------------------------------------------
+
+
+##### ***Ajuste afilamento sem casca***
+
+\
+\
+
+```{r mol_poly_sc, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#base dados cc
+db_poly_sc <- mol_poly %>% 
+  dplyr::mutate(aug_sc = purrr::map(mol_poly_sc, broom::augment),
+                coef_sc = purrr::map(mol_poly_sc, tidy2, "_sc")) %>% 
+  dplyr::select(-mol_poly_cc, - mol_poly_sc) %>%
+  tidyr::unnest() %>% 
+  dplyr::mutate(.residp = .resid/did_sc, .after = .resid) %>%
+  dplyr::filter(did_sc != 0)
+
+
+for(k in mol_poly$cdap){
+  
+  sub_mol_poly <- mol_poly %>% 
+    dplyr::filter(cdap == k)
+  
+  sub_db_poly <- db_poly_sc %>% 
+    dplyr::filter(cdap == k)
+  
+  cat("\n######", k, "\n")
+  
+  print(knitr::kable(broom::tidy(sub_mol_poly$mol_poly_sc[[1]]) %>%  
+                     dplyr::mutate(term = c("b0", "b1", "b2", "b3", "b4", "b5"),
+                                     p.value = aj_pvalue(p.value)),
+                     digits = c(5, 5, 5, 2), 
+                     caption = "coefficients statistics"))
+  cat("\n", sep = "")
+  
+  print(knitr::kable(glance2(sub_mol_poly$mol_poly_sc[[1]]), caption = "model statistics"))
+  cat("\n", sep = "")
+  
+  psresid <- plot_resid_poly(sub_db_poly)
+  print(psresid$Presid_fit )
+  print(psresid$Presid_obs )
+  print(psresid$Sresid_fit)
+  print(psresid$obs_fit)
+  
+  psresidVI <- plot_resid_ev_poly(x = sub_db_poly, exp_variables = c("dap"))
+  print(psresidVI$dap)
+  
+  cat("  \n\n  __________________  ", sep = "")
+}
+
+
+
+```
+
+###### ***Resumo***
+
+```{r resumo_sc, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+print(knitr::kable(coefs_poly %>% 
+                    dplyr::filter(casca == "sc") %>% 
+                     dplyr::select(c(1, 3:13, 22)),
+                     digits = c(1, 1, 5, 5, 5, 5, 5, 5, 3, 3, 4, 4, 0), 
+                     caption = "resumos coefs"))
+cat("\n", sep = "")
+
+
+p1 <- ggplot2::ggplot(coefs_poly %>% 
+                    dplyr::filter(casca == "sc"), 
+                    ggplot2::aes(x = cdap, y = ff)) +
+  ggplot2::geom_point(alpha = 0.5) +
+  ggplot2::geom_line(group=1, alpha = 0.3) +
+  ggplot2::labs(x = "classe diametrica", y = "fator de forma") +
+  ggplot2::theme_minimal()
+
+print(p1)
+cat("\n", sep = "")
+
+
+```
+
+
+
+```{r plot_afilamento_sc, echo=FALSE, warning = F, message = F, fig.asp = 0.4, fig.width = 14, fig.align = "center", results='asis'}
+
+
+ggplot2::ggplot(data = cubor, ggplot2::aes(x = hih, y = did_sc, color = cdap)) +
+  ggplot2::geom_point(alpha = .1) +
+  ggplot2::stat_smooth(method="lm", se=TRUE, fill=NA,
+                       formula=y ~ stats::poly(x, 5, raw=TRUE), size = 0.8) +
+  ggplot2::theme_minimal(base_size = 16) %+replace% ggplot2::theme(legend.title=element_blank(),
+                                                     legend.position = "bottom")
+
+```
+
+
+------------------------------------------------------------------------
+
+
+##### ***Aplicação volume sem casca***
+
+\
+Sera realizado a aplicação da revolução da integral da função de afilamento para estimativa do volume comercial. O volume comercial da arove será limitado pelo diametro comercial com casca da variavel **dcom** e altura de toco da variavel **at**, quando estes **NULL** sera utilizado o limites do arquivo de input.
+
+
+```{r vol_poly_sc, echo=FALSE, warning = F, message = F, fig.height = 5, fig.width = 7, fig.align = "center", results='asis'}
+
+#alinha coefs
+coefs_temp <- mol_poly %>% 
+  dplyr::mutate(coef_sc = purrr::map(mol_poly_sc, tidy2, "")) %>% 
+  dplyr::select(-mol_poly_cc, - mol_poly_sc, -data) %>%
+  tidyr::unnest()
+
+#base dados cc
+db_poly_vol_sc <- bytree_com  %>% 
+  dplyr::inner_join(coefs_temp) %>% 
+  dplyr::rowwise() %>% 
+  dplyr::mutate(.fitted = poly2vol(htoco, hcom, h, dap, b0, b1, b2, b3, b4, b5)) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(.resid = vsc - .fitted,
+                .residp = .resid / vsc,
+                .std.resid = 0.1)
+
+
+stats_vol <- db_poly_vol_sc %>% 
+  dplyr::group_by(cdap) %>% 
+  dplyr::summarise(sigma = sqrt(sum(.resid^2)/(n()-6)),
+                   sigmap = (sigma/mean(vsc)),
+                   rmse = sqrt(mean((.resid)^2)),
+                   rmspe = sqrt(mean((.residp)^2)),
+                   nobs = n())
+
+print(knitr::kable(stats_vol,
+                     digits = c(1, 5, 5, 5, 5, 0)))
+
+
+for(k in levels(db_poly_vol_sc$cdap)){
+
+  sub_stats_vol <- stats_vol %>%
+    dplyr::filter(cdap == k)
+
+  sub_db_poly <- db_poly_vol_sc %>%
+    dplyr::filter(cdap == k)
+
+  cat("\n######", k, "\n")
+
+  print(knitr::kable(sub_stats_vol,
+                     digits = c(1, 5, 5, 5, 5, 0),
+                    caption = "model statistics"))
+  cat("\n", sep = "")
+
+  psresid <- plot_resid_poly(sub_db_poly)
+  print(psresid$Presid_fit )
+  print(psresid$Presid_obs )
+  print(psresid$obs_fit)
+
+  psresidVI <- plot_resid_ev_poly(x = sub_db_poly, exp_variables = c("dap"))
+  print(psresidVI$dap)
+
+  cat("  \n\n  __________________  ", sep = "")
+}
+
+
+
+```
+
+
+```{r write_db, include=FALSE}
+
+#cubagem
+readr::write_csv2(x = cubor, file = paste0(basedir, "\\cubagem.csv"))
+readr::write_csv2(x = cubcom, file = paste0(basedir, "\\cubagem_comercial.csv"))
+
+readr::write_csv2(x = bytree_or, file = paste0(basedir, "\\cubagem_nivarv.csv"))
+readr::write_csv2(x = bytree_com, file = paste0(basedir, "\\cubagem_comercial_nivarv.csv"))
+
+#bases de ajuste
+readr::write_csv2(x = db_poly_cc, file = paste0(basedir, "\\db_poly_cc.csv"))
+readr::write_csv2(x = db_poly_sc, file = paste0(basedir, "\\db_poly_sc.csv"))
+
+readr::write_csv2(x = db_poly_vol_cc, file = paste0(basedir, "\\db_poly_cc_nivarv.csv"))
+readr::write_csv2(x = db_poly_vol_sc, file = paste0(basedir, "\\db_poly_sc_nivarv.csv"))
+
+readr::write_csv2(x = db_poly_vol_cc, file = paste0(basedir, "\\db_poly_cc_nivarv.csv"))
+readr::write_csv2(x = db_poly_vol_sc, file = paste0(basedir, "\\db_poly_sc_nivarv.csv"))
+
+
+readr::write_csv2(x = db_schu_cc, file = paste0(basedir, "\\db_schu_cc.csv"))
+readr::write_csv2(x = db_schu_sc, file = paste0(basedir, "\\db_schu_sc.csv"))
+
+```
+
+#######################################################
+
+
