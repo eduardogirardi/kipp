@@ -85,8 +85,8 @@ plot_resid_poly <- function(x,  ncol = NULL, nrow = NULL, title = NULL) {
     ggplot2::geom_point(alpha = 0.2) +
     ggplot2::geom_hline(yintercept = 0, size = 0.7) +
     ggplot2::labs(x = "fitted", y = "resid%") +
-    ggplot2::ylim(-1*max(abs(x$.residp*100)),
-                  max(abs(x$.residp*100)))+
+    ggplot2::ylim( ifelse( (-1*max(abs(x$.residp*100))) < -100, -100, (-1*max(abs(x$.residp*100)))) ,
+                  ifelse( (max(abs(x$.residp*100))) > 100, 100, (max(abs(x$.residp*100))))) +
     ggplot2::theme_minimal()
   lstResidP[["Presid_fit"]] <- Presid_fit
   
@@ -95,8 +95,8 @@ plot_resid_poly <- function(x,  ncol = NULL, nrow = NULL, title = NULL) {
     ggplot2::geom_point(alpha = 0.2) +
     ggplot2::geom_hline(yintercept = 0, size = 0.7) +
     ggplot2::labs(x = "observed", y = "resid%") +
-    ggplot2::ylim(-1*max(abs(x$.residp*100)),
-                  max(abs(x$.residp*100)))+
+    ggplot2::ylim(ifelse( (-1*max(abs(x$.residp*100))) < -100, -100, (-1*max(abs(x$.residp*100)))) ,
+                  ifelse( (max(abs(x$.residp*100))) > 100, 100, (max(abs(x$.residp*100))))) +
     ggplot2::theme_minimal()
   
   lstResidP[["Presid_obs"]] <- Presid_obs
