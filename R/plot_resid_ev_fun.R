@@ -36,7 +36,16 @@ plot_resid_ev.lm <- function(x, data = NULL, exp_variables = NULL, ncol = NULL, 
   } else {
     dfplot <- ggplot2::fortify(x)
   }
-  dfplot$.residP <- (dfplot$.resid*100)/ dfplot[[toString(x$call[[2]][2])]]
+
+  dv <- toString(x$call[[2]][2])
+
+  if(grepl("^log", dv)){
+    dfplot$.residP <- ((exp(dfplot[[dv]]) - exp(dfplot$.fitted)) *100) / exp(dfplot[[dv]])
+  }else{
+    dfplot$.residP <- (dfplot$.resid*100)/ dfplot[[dv]]
+  }
+
+
 
 
   #list variables
