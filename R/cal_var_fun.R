@@ -78,7 +78,10 @@
 #dplyr::row_number
 
 
-cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")){
+cal_var <- function(x,
+                    by.assmann = FALSE,
+                    cor_area = FALSE,
+                    im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")){
 
 
   # calulo dap, g, h, area_parc ---------------------------------------------
@@ -220,6 +223,8 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
 
   cod_cova <- c("Y", "Z", "ZA")
   cod_fuste <- c("F", "M", "N", "CA", "CR", "Y", "Z", "ZA")
+  #para calculo percentual de caidas
+  cod_percC <- c("F", "M", "Y", "Z", "ZA")
 
 
   x <- x %>%
@@ -233,11 +238,136 @@ cal_var <- function(x, by.assmann = FALSE, cor_area = FALSE, im = c("rf", "talha
                                                       fuste == 1]),
                   fustes_parc = dplyr::n_distinct(id_temp[!cod1 %in% cod_fuste &
                                                      !cod2 %in% cod_fuste]),
+                  percC_parc = dplyr::n_distinct(id_temp[!cod1 %in% cod_percC &
+                                                           !cod2 %in% cod_percC &
+                                                           fuste == 1]),
                   covas = round((10000*covas_parc)/max(area_parc),0),
                   arvores = round((10000*arvores_parc)/max(area_parc),0),
                   fustes = round((10000*fustes_parc)/max(area_parc),0)) %>%
-    dplyr::select(-covas_parc, -arvores_parc, -fustes_parc) %>%
+    #dplyr::select(-covas_parc, -arvores_parc, -fustes_parc) %>%
     dplyr::ungroup()
+
+
+
+  # codigos qualitativos ----------------------------------------------------
+
+  #n codigos 1
+  cods <- x %>%
+    dplyr::group_by(dplyr::across(tidyselect::all_of(c(im, "cod1")))) %>%
+    dplyr::tally() %>%
+    dplyr::rename(cod = cod1, n1 = n) %>%
+    dplyr::mutate(cod = tidyr::replace_na(cod, "SC"))
+
+  #n codigos 2
+  temp_cods <- x %>%
+    dplyr::group_by(dplyr::across(tidyselect::all_of(c(im, "cod2")))) %>%
+    dplyr::tally() %>%
+    dplyr::filter(!is.na(cod2)) %>%
+    dplyr::rename(cod = cod2, n2 = n)
+
+  #n de codigos em cod1 e cod2
+  cods <- dplyr::full_join(cods, temp_cods) %>%
+    dplyr::mutate(n1 = tidyr::replace_na(n1, 0),
+                  n2 = tidyr::replace_na(n2, 0),)
+
+  #correcao do codigo B - conta quantos codigos B estao repetidos em cada arvore
+  temp_codb <- x %>%
+    dplyr::filter(fuste > 1) %>%
+    dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
+    dplyr::tally(name = "temp_codb") %>%
+    dplyr::mutate(cod = "B")
+
+  #n total de codigos
+  cods <- dplyr::left_join(cods, temp_codb) %>%
+    dplyr::mutate(temp_codb = tidyr::replace_na(temp_codb, 0)) %>%
+    dplyr::mutate(n = (n1 + n2) - temp_codb) %>%
+    dplyr::select(-n1, -n2, -temp_codb )
+
+  #trasendo o n de covas, fuste e arvores para a base de codigos
+  cods <- dplyr::left_join(cods,
+                           dplyr::distinct_all( dplyr::select(x,
+                                                              tidyselect::all_of(c(im, "covas_parc", "arvores_parc", "fustes_parc", "percC_parc")))))
+
+
+
+  #cosistir:
+  #codigo B e codigo em todos os fustes
+  #nao pode haver codigo J e K na mesmo fuste - sem tem os 2 ele é K
+  #nao pode haver codigo N com J ou K na mesmo fuste - sem tem N ele é N
+  # nao pode haver o codigo M ou N em conjunto com C
+
+  #calculo da proporcao de cada codigo
+  cods <- cods %>%
+    dplyr::mutate(prop_cod = dplyr::case_when(cod == "SC" ~ (n / covas_parc)*100, #sem codigo
+                                              cod == "A" ~ (n / fustes_parc)*100, #bifurcada acima
+                                              cod == "B" ~ (n / arvores_parc)*100, #bifurcada abaixo
+                                              cod == "CA" ~ (n / percC_parc)*100, #caida deitada
+                                              cod == "CR" ~ (n / percC_parc)*100, #caida raiz
+                                              cod == "D" ~ (n / fustes_parc)*100, #dominada
+                                              cod == "E" ~ (n / arvores_parc)*100, #marcada para sair
+                                              cod == "F" ~ (n / covas_parc)*100, #falha
+                                              cod == "G" ~ (n / fustes_parc)*100, #geada
+                                              cod == "H" ~ (n / fustes_parc)*100, #dominante
+                                              cod == "I" ~ (n / fustes_parc)*100, #praga doenca
+                                              cod == "J" ~ (n / fustes_parc)*100, #macaco_com_rec
+                                              cod == "K" ~ (n / fustes_parc)*100, #macaco_sem_rec
+                                              cod == "L" ~ (n / fustes_parc)*100, #atacada por vespa
+                                              cod == "M" ~ (n / covas_parc)*100, #morta
+                                              cod == "N" ~ (n / covas_parc)*100, #morta macaco
+                                              cod == "P" ~ (n / fustes_parc)*100, #pontera seca
+                                              cod == "Q" ~ (n / fustes_parc)*100, #quebrada
+                                              cod == "R" ~ (n / fustes_parc)*100, #rebrota
+                                              cod == "S" ~ (n / fustes_parc)*100, #formiga
+                                              cod == "T" ~ (n / fustes_parc)*100, #torta
+                                              cod == "U" ~ (n / fustes_parc)*100, #fox_tail
+                                              cod == "V" ~ (n / fustes_parc)*100, #inclinada vento
+                                              cod == "W" ~ (n / fustes_parc)*100, #deitada vento
+                                              cod == "X" ~ (n / fustes_parc)*100)) #verida na base
+
+  cd <- c("c_SC", #sem codigo
+          "c_A", #bifurcada acima
+          "c_B",  #bifurcada abaixo
+          "c_CA", #caida deitada
+          "c_CR", #caida raiz
+          "c_D", #dominada
+          "c_E", #marcada para sair
+          "c_F",  #falha
+          "c_G", #geada
+          "c_H", #dominante
+          "c_I", #praga doenca
+          "c_J", #macaco_com_rec
+          "c_K", #macaco_sem_rec
+          "c_L", #atacada por vespa
+          "c_M", #morta
+          "c_N",  #morta macaco
+          "c_P", #pontera seca
+          "c_Q", #quebrada
+          "c_R", #rebrota
+          "c_S", #formiga
+          "c_T", #torta
+          "c_U", #fox_tail
+          "c_V", #inclinada vento
+          "c_W", #deitada vento
+          "c_X") #verida na base
+
+
+  cods <- cods %>%
+    dplyr::select(-covas_parc, -arvores_parc, -fustes_parc, -percC_parc,  -n) %>%
+    dplyr::mutate(cod = paste0("c_", cod)) %>%
+    dplyr::mutate(cod = factor(cod, levels = cd)) %>%
+    dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
+    tidyr::complete(cod, fill = list(n = 0, prop_cod = 0)) %>%
+    tidyr::pivot_wider(names_from = cod, values_from = prop_cod) %>%
+    dplyr::ungroup()
+
+
+  #join cods
+  x <- x %>%
+    dplyr::left_join(cods)
+
+  #remove campos temporarios
+  x <- x %>%
+    dplyr::select(-id_temp, -covas_parc, -arvores_parc, -fustes_parc, -percC_parc)
 
   return(x)
 }
