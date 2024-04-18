@@ -196,8 +196,8 @@ cal_var <- function(x,
     dplyr::mutate(dg = sqrt(mean(dap[dap > 0 &
                                        !cod1 %in% cs &
                                        !cod2 %in% cs]^2 , na.rm = T)),
-                  ab = sum(g[!cod1 %in% cs &
-                               !cod2 %in% cs])) %>%
+                  ab = (sum(g[!cod1 %in% cs &
+                               !cod2 %in% cs])*10000)/area_parc) %>%
     dplyr::ungroup()
 
 
