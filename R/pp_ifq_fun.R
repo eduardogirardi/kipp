@@ -54,7 +54,8 @@ pp_ifq <- function(x,
   x <- x %>%
     dplyr::mutate(ano_plt = as.numeric(format(dt_plt,'%Y')),
                   mes_plt = as.numeric(format(dt_plt,'%m')),
-                  h = alt/10)
+                  h = alt/10,
+                  h = tidyr::replace_na(h, 0))
 
 
   # calcula da area da parcela ----------------------------------------------
@@ -122,21 +123,21 @@ pp_ifq <- function(x,
   # calculo ph50 -------------------------------------------------------------
 
 
-  ph50 <- function(x) {
+  ph50_gr <- function(x) {
 
-    mortas <- x[is.na(x)] #deixa os valores como 0 caso esteja NA
-    metade <- floor(length(x)/2) #quantidade de observacaoes que representa 50% (percentil 50) do total de observacoes
-    soma_todas <- sum(x, na.rm = TRUE) #faz a soma de todas as alturas das arvores da parcela
-    soma_acumulada <- c(mortas, cumsum(sort(x))) #faz a soma acumulada de todas as observacoes
-    soma_metade <- mean(soma_acumulada[metade], na.rm = TRUE) #da soma acumulada seleciona ate a posição que representa 50% das obserrvacoes
-    z <- (soma_metade / soma_todas) #relacao entre soma acumulada total e soma acumulado do percentil 50
+    x <- x^3
+    metade <- floor(length(x)/2)
+    soma_todas <- sum(x, na.rm = TRUE)
+    soma_acumulada <- cumsum(sort(x))
+    soma_metade <- soma_acumulada[metade]
+    z <- (soma_metade / soma_todas)
 
     return(z)
   }
 
   x <- x %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
-    dplyr::mutate(ph50 = ph50(h),
+    dplyr::mutate(ph50 = ph50_gr(h),
                   hmed = mean(h[h>0]),
                   hcv = (sd(h[h>0])/mean(h[h>0]))*100,
                   sv = (arvores/covas)*100) %>%
@@ -162,7 +163,7 @@ pp_ifq <- function(x,
   #n de codigos em cod1 e cod2
   cods <- dplyr::full_join(cods, temp_cods) %>%
     dplyr::mutate(n1 = tidyr::replace_na(n1, 0),
-                  n2 = tidyr::replace_na(n2, 0),)
+                  n2 = tidyr::replace_na(n2, 0))
 
   #correcao do codigo B - conta quantos codigos B estao repetidos em cada arvore
   temp_codb <- x %>%
