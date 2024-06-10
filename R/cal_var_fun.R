@@ -88,8 +88,10 @@ cal_var <- function(x,
 
   x <- x %>%
     dplyr::mutate(dap =  cap/(pi*10),
+                  dap = tidyr::replace_na(dap, 0),
                   g = pi*(dap/200)^2,
-                  h = alt/10)
+                  h = alt/10,
+                  h = tidyr::replace_na(h, 0))
 
 
   # calcula da area da parcela ----------------------------------------------
@@ -201,11 +203,19 @@ cal_var <- function(x,
     dplyr::ungroup()
 
 
+
+  # data e ano de plt -------------------------------------------------------
+
+  x <- x %>%
+    dplyr::mutate(dt_plt = dplyr::case_when(rotacao > 1 ~ dt_int,
+                                             TRUE ~ dt_plt),
+                  ano_plt = format(dt_plt, "%Y"), .after = dt_plt)
+
+
   # calculo da idade --------------------------------------------------------
 
   x <- x %>%
-    dplyr::mutate(idade = dplyr::case_when(rotacao > 1 ~ as.numeric(difftime(dt_med, dt_int,  units = "days"))/365.25,
-                                           TRUE ~ as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25),
+    dplyr::mutate(idade = as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25,
                   classe_idade = round(idade))
 
 
