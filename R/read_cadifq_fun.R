@@ -90,5 +90,6 @@ read_cadifq <- function(file, guess_max = 30000, ...){
   }
 
 
+
   return(cad)
 }
