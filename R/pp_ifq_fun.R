@@ -16,8 +16,8 @@
 #'
 #'  dc <- pp_ifq(bd,
 #'                cor_area = F,
-#'                im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
-#'                it = c("rf", "talhao", "ciclo", "rotacao"))
+#'                im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+#'                it = c("centro", "rf", "talhao", "ciclo", "rotacao"))
 #'
 #' @export
 #'
@@ -45,8 +45,8 @@
 
 pp_ifq <- function(x,
                    cor_area = FALSE,
-                   im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
-                   it = c("rf", "talhao", "ciclo", "rotacao")){
+                   im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+                   it = c("centro", "rf", "talhao", "ciclo", "rotacao")){
 
 
   # calulo dap, g, h, area_parc ---------------------------------------------
@@ -208,6 +208,7 @@ pp_ifq <- function(x,
                                               cod == "L" ~ (n / fustes_parc)*100, #atacada por vespa
                                               cod == "M" ~ (n / covas_parc)*100, #morta
                                               cod == "N" ~ (n / covas_parc)*100, #morta macaco
+                                              cod == "O" ~ (n / fustes_parc)*100, #ferrugem
                                               cod == "P" ~ (n / fustes_parc)*100, #pontera seca
                                               cod == "Q" ~ (n / fustes_parc)*100, #quebrada
                                               cod == "R" ~ (n / fustes_parc)*100, #rebrota
@@ -228,8 +229,10 @@ pp_ifq <- function(x,
           "G", #geada
           "I", #praga doenca
           "M", #morta
+          "O", #ferrugem
           "P", #pontera seca
           "Q", #quebrada
+          "R", #rebrota
           "S", #formiga
           "T", #torta
           "V", #inclinada vento
@@ -237,6 +240,7 @@ pp_ifq <- function(x,
 
   cods <- cods %>%
     dplyr::select(-covas_parc, -arvores_parc, -fustes_parc, -percC_parc,  -n) %>%
+    dplyr::filter(cod %in% cd) %>%
     dplyr::mutate(cod = factor(cod, levels = cd)) %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
     tidyr::complete(cod, fill = list(n = 0, prop_cod = 0)) %>%
@@ -276,7 +280,6 @@ pp_ifq <- function(x,
 
   #sumariza por talhao
   bystand <- x %>%
-    dplyr::rename("Fc" = "F", "Tc" = "T") %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(it)))) %>%
     dplyr::mutate(dt_med = mean(dt_med)) %>%
     dplyr::mutate(idade = as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25) %>%
@@ -297,22 +300,8 @@ pp_ifq <- function(x,
                      covas = mean(covas),
                      arvores = mean(arvores),
                      fustes = mean(fustes),
-                     SC = mean(SC),
-                     A = mean(A),
-                     B = mean(B),
-                     CA = mean(CA),
-                     CR = mean(CR),
-                     D = mean(D),
-                     "F" = mean(Fc),
-                     G = mean(G),
-                     I = mean(I),
-                     M = mean(M),
-                     P = mean(P),
-                     Q = mean(Q),
-                     S = mean(A),
-                     "T" = mean(Tc),
-                     V = mean(V),
-                     W = mean(W))
+                     dplyr::across(dplyr::all_of(cd), mean))
+
 
   #list dfs
   ls_df <- list()
