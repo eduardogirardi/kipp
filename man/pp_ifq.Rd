@@ -7,8 +7,8 @@
 pp_ifq(
   x,
   cor_area = FALSE,
-  im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
-  it = c("rf", "talhao", "ciclo", "rotacao")
+  im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+  it = c("centro", "rf", "talhao", "ciclo", "rotacao")
 )
 }
 \arguments{
@@ -30,7 +30,7 @@ Esta função ira processar o IFQ \cr
 
  dc <- pp_ifq(bd,
                cor_area = F,
-               im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
-               it = c("rf", "talhao", "ciclo", "rotacao"))
+               im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+               it = c("centro", "rf", "talhao", "ciclo", "rotacao"))
 
 }

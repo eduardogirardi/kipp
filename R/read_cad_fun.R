@@ -74,7 +74,7 @@ read_cad <- function(file, guess_max = 30000, ...){
                           ...)
 
   #defini as variaveis essenciais
-  cad_names <- c("id_talhao",	"rf",	"talhao",	"ciclo",	"rotacao",	"especie",	"matgen",
+  cad_names <- c("centro",	"rf",	"talhao",	"ciclo",	"rotacao",	"especie",	"matgen",
                  "espacamento" ,"regime",	"dt_plt",	"dt_int",	"area_plt")
 
   #ajustando os nomes da variaveis conforme o numero de variais do input

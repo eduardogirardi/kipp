@@ -18,7 +18,6 @@ editor_options:
 }
 </style>
 ```
-
 ![](logo-6.png)\
  
 
@@ -36,17 +35,17 @@ editor_options:
 #indexador arvore
 ia <- c(im, "linha", "arvore")
 
-
-
 dp <- bd %>% 
-  dplyr::filter(cod1 != "B" & cod2 != "B") %>%
+  dplyr::filter(fuste == 1) %>%
   dplyr::group_by(dplyr::across(tidyselect::all_of(ia))) %>% 
   dplyr::mutate(n = dplyr::n()) %>% 
-  dplyr::filter(n > 1)
-  
+  dplyr::filter(n > 1) %>% 
+  dplyr::select(-dplyr::starts_with("c_"))
+
+
+
 if (nrow(dp) > 0) {
- knitr::kable(dp, 
-              digits = 0) 
+ DT::datatable(dp, rownames = F, filter = 'top')  
 } else {
   print("Nenhum fuste duplicado.")
 }
@@ -66,9 +65,11 @@ int_am <- samp_int(bd,
 int_am <- janitor::adorn_totals(int_am)
 
 
-knitr::kable(int_am, 
-             digits = 1,
-             col.names = c(ie, "numero de parcelas", "area plantada", "intensidade amostral"))
+DT::datatable(int_am, 
+              colnames = c(ie, "numero de parcelas [n]", "area plantada [ha]", "intensidade amostral [ha/parc]"),
+              rownames = F, 
+              filter = 'top') %>% 
+  DT::formatRound(purrr::map_lgl(.$x$data, is.numeric), digits = 2)
 
 ```
 
@@ -77,7 +78,7 @@ knitr::kable(int_am,
 ```{r codigos, echo = F, warning = F}
 cq <- table(tidyr::replace_na(bd$cod1, "."), tidyr::replace_na(bd$cod2, "."))
 
-knitr::kable(cq, row.names = T)
+DT::datatable(cq)
 ```
 
 ## Lados, area e inclinacao

@@ -84,6 +84,8 @@ cal_var <- function(x,
                     im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")){
 
 
+
+
   # calulo dap, g, h, area_parc ---------------------------------------------
 
   x <- x %>%
@@ -138,7 +140,7 @@ cal_var <- function(x,
 
   }else{
 
-    ## calculo pelo metodo hibrido, prioriza melo codigo H, na falta deste tenta pelo metodo de assmann
+    ## calculo pelo metodo hibrido, prioriza pelo codigo H, na falta deste tenta pelo metodo de assmann
     #codigos removidos
     cs <- c("F", "M", "N", "CA", "CR", "Y", "Z", "ZA")
 
@@ -261,6 +263,14 @@ cal_var <- function(x,
 
   # codigos qualitativos ----------------------------------------------------
 
+  #ajusta codigo VV
+  x <- x %>%
+    dplyr::mutate(cod1 = dplyr::case_when(cod1 == "VV" ~ "W",
+                                          TRUE ~ cod1)) %>%
+    dplyr::mutate(cod2 = dplyr::case_when(cod2 == "VV" ~ "W",
+                                          TRUE ~ cod2))
+
+
   #n codigos 1
   cods <- x %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im, "cod1")))) %>%
@@ -364,6 +374,7 @@ cal_var <- function(x,
   cods <- cods %>%
     dplyr::select(-covas_parc, -arvores_parc, -fustes_parc, -percC_parc,  -n) %>%
     dplyr::mutate(cod = paste0("c_", cod)) %>%
+    dplyr::filter(cod %in% cd) %>%
     dplyr::mutate(cod = factor(cod, levels = cd)) %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
     tidyr::complete(cod, fill = list(n = 0, prop_cod = 0)) %>%
