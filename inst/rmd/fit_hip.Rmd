@@ -62,10 +62,10 @@ plot_exp <- function(data, x_var, y_var, title) {
     ggplot2::theme_minimal()
 }
 
-jdt <- function(model, adt){
-  df <- cbind(adt[,(names(adt) %in% names(ggplot2::fortify(model))) == F], ggplot2::fortify(model))
-  return(df)
-}
+# jdt <- function(model, adt){
+#   df <- cbind(adt[,(names(adt) %in% names(ggplot2::fortify(model))) == F], ggplot2::fortify(model))
+#   return(df)
+# }
 
 coefdt <- function(model, lstest, modelname){
   df <- broom::tidy(model, quick = T) %>% 
@@ -123,9 +123,15 @@ resumebase1 <- base %>%
                     sd_h.dap = sd(h/dap), 
                     n_obs = dplyr::n())
 
-knitr::kable(resumebase1,
-             col.names = gsub("[.]", "/", names(resumebase1)),
-             digits = 2)
+DT::datatable(resumebase1, 
+              colnames = gsub("[.]", "/", names(resumebase1)),
+              rownames = F, 
+              filter = 'top') %>% 
+  DT::formatRound(purrr::map_lgl(.$x$data, is.numeric), digits = 2)
+
+# knitr::kable(resumebase1,
+#              col.names = gsub("[.]", "/", names(resumebase1)),
+#              digits = 2)
 
 resumebase2 <- base %>% 
   dplyr::group_by(dplyr::across(tidyselect::all_of(estrato[[1]]))) %>% 
@@ -138,7 +144,13 @@ resumebase2 <- base %>%
                     mean_dap = mean(dap), 
                     sd_dap = sd(dap),
                     n_obs = dplyr::n())
-knitr::kable(resumebase2, digits = 2)
+
+DT::datatable(resumebase2, 
+              rownames = F, 
+              filter = 'top') %>% 
+  DT::formatRound(purrr::map_lgl(.$x$data, is.numeric), digits = 2)
+
+#knitr::kable(resumebase2, digits = 2)
 
 ```
 
@@ -156,9 +168,16 @@ resumebase1 <- base %>%
                     mean_h.dap = mean(h/dap), 
                     sd_h.dap = sd(h/dap), 
                     n_obs = dplyr::n())
-knitr::kable(resumebase1,
-             col.names = gsub("[.]", "/", names(resumebase1)),
-             digits = 2)
+
+DT::datatable(resumebase1, 
+              colnames = gsub("[.]", "/", names(resumebase1)),
+              rownames = F, 
+              filter = 'top') %>% 
+  DT::formatRound(purrr::map_lgl(.$x$data, is.numeric), digits = 2)
+
+# knitr::kable(resumebase1,
+#              col.names = gsub("[.]", "/", names(resumebase1)),
+#              digits = 2)
 
 resumebase2 <- base %>% 
   dplyr::group_by(dplyr::across(tidyselect::all_of(estrato[[2]]))) %>% 
@@ -171,7 +190,13 @@ resumebase2 <- base %>%
                     mean_dap = mean(dap), 
                     sd_dap = sd(dap),
                     n_obs = dplyr::n())
-knitr::kable(resumebase2, digits = 2)
+
+DT::datatable(resumebase2, 
+              rownames = F, 
+              filter = 'top') %>% 
+  DT::formatRound(purrr::map_lgl(.$x$data, is.numeric), digits = 2)
+
+#knitr::kable(resumebase2, digits = 2)
 
 ```
 
@@ -300,9 +325,8 @@ if( !all((essec %in% names(base))) ){
       print(psresid$Sresid_fit)
       print(psresid$obs_fit)
       
-      psresidVI <- plot_resid_ev(x = maf[[k]], data = adt_maf[[k]])
+      psresidVI <- plot_resid_ev(x = maf[[k]], data = adt_maf[[k]], delog = T, exp_variables = c("hdom", "dap", "idade"))
       print(psresidVI$hdom)
-      print(psresidVI$dg)
       print(psresidVI$dap)
       print(psresidVI$idade)
       
@@ -349,7 +373,7 @@ if(length(maf) < 1) {
     message("Nao exitem as variaveis necessarias para o modelo scolforo - hdom, dg, idade")
   } else{
     ### basedata
-    ltmaf_bd <- purrr::map2(maf, adt_base, jdt)
+    ltmaf_bd <- purrr::map2(maf, adt_base, broom::augment_columns)
     maf_bd <- purrr::invoke(rbind, ltmaf_bd)
     
     readr::write_csv2(x = maf_bd, file = paste0(basedir, "\\basedata_scolforo.csv"))
@@ -443,9 +467,8 @@ if(!all((essec %in% names(base)))){
       print(psresid$Sresid_fit)
       print(psresid$obs_fit)
       
-      psresidVI <- plot_resid_ev(x = mafsim[[k]], data = adt_mafsim[[k]])
+      psresidVI <- plot_resid_ev(x = mafsim[[k]], data = adt_mafsim[[k]], delog = T, exp_variables = c("hdom", "dap"))
       print(psresidVI$hdom)
-      print(psresidVI$dg)
       print(psresidVI$dap)
       
       disperP <- plot_dispersion(x = mafsim[[k]], data = adt_mafsim[[k]], delog = T, exp_variables = "dap")
@@ -477,7 +500,7 @@ if(length(mafsim) < 1) {
     message("Nao exitem as variaveis necessarias para o modelo scolforo simp. - hdom, dg")
   } else{
     ### basedata
-    ltmafsim_bd <- purrr::map2(mafsim, adt_base, jdt)
+    ltmafsim_bd <- purrr::map2(mafsim, adt_base, broom::augment_columns)
     mafsim_bd <- purrr::invoke(rbind, ltmafsim_bd)
     
     readr::write_csv2(x = mafsim_bd, file = paste0(basedir, "\\basedata_scolforo_simp.csv"))
@@ -547,7 +570,7 @@ for(k in seq(1:length(curtis))){
   print(psresid$Sresid_fit)
   print(psresid$obs_fit)
 
-  psresidVI <- plot_resid_ev(x = curtis[[k]], data = adt_curtis[[k]])
+  psresidVI <- plot_resid_ev(x = curtis[[k]], data = adt_curtis[[k]], delog = T, exp_variables = c("dap"))
   print(psresidVI$dap)
 
   disperP <- plot_dispersion(x = curtis[[k]], data = adt_curtis[[k]], delog = T, exp_variables = "dap")
@@ -567,7 +590,7 @@ adt_base <- base %>%
   purrr::discard(~ nrow(.x) < min_obs)
 
 ### basedata
-ltcurtis_bd <- purrr::map2(curtis, adt_base, jdt)
+ltcurtis_bd <- purrr::map2(curtis, adt_base, broom::augment_columns)
 curtis_bd <- purrr::invoke(rbind, ltcurtis_bd)
 
 readr::write_csv2(x = curtis_bd, file = paste0(basedir, "\\basedata_curtis.csv"))
@@ -634,7 +657,7 @@ for(k in seq(1:length(pettersen))){
   print(psresid$Sresid_fit)
   print(psresid$obs_fit)
   
-  psresidVI <- plot_resid_ev(x = pettersen[[k]], data = adt_pettersen[[k]])
+  psresidVI <- plot_resid_ev(x = pettersen[[k]], data = adt_pettersen[[k]], delog = T, exp_variables = c("dap"))
   print(psresidVI$dap)
   
   disperP <- plot_dispersion(x = pettersen[[k]], data = adt_pettersen[[k]], delog = T, exp_variables = "dap")
@@ -649,7 +672,7 @@ for(k in seq(1:length(pettersen))){
 
 ### basedata
 
-ltpettersen_bd <- purrr::map2(pettersen, adt_base, jdt)
+ltpettersen_bd <- purrr::map2(pettersen, adt_base, broom::augment_columns)
 pettersen_bd <- purrr::invoke(rbind, ltpettersen_bd)
 
 readr::write_csv2(x = pettersen_bd, file = paste0(basedir, "\\basedata_pettersen.csv"))

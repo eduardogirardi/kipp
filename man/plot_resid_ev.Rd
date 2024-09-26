@@ -11,6 +11,7 @@ plot_resid_ev(x, ...)
   x,
   data = NULL,
   exp_variables = NULL,
+  delog = F,
   ncol = NULL,
   nrow = NULL,
   title = NULL

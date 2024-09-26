@@ -23,29 +23,32 @@ plot_resid_ev <- function(x, ...){
 #' @rdname plot_resid_ev
 #' @method plot_resid_ev lm
 #' @export
-plot_resid_ev.lm <- function(x, data = NULL, exp_variables = NULL, ncol = NULL, nrow = NULL, title = NULL) {
+plot_resid_ev.lm <- function(x, data = NULL, exp_variables = NULL, delog = F, ncol = NULL, nrow = NULL, title = NULL) {
 
 
   #create a df
   if( !(is.null(data)) ){
-    if(nrow(data) == nrow(ggplot2::fortify(x)) ){
-      dfplot <- cbind(ggplot2::fortify(x), data[,(names(data) %in% names(ggplot2::fortify(x))) == F])
+    if(nrow(data) == nrow(broom::augment(x)) ){
+      dfplot <-  broom::augment_columns(x, data)
     } else {
-      dfplot <- ggplot2::fortify(x)
+      dfplot <- broom::augment(x)
     }
   } else {
-    dfplot <- ggplot2::fortify(x)
+    dfplot <- broom::augment(x)
   }
 
-  dv <- toString(x$call[[2]][2])
 
-  if(grepl("^log", dv)){
-    dfplot$.residP <- ((exp(dfplot[[dv]]) - exp(dfplot$.fitted)) *100) / exp(dfplot[[dv]])
+  if(delog){
+    dfplot <- dfplot %>%
+      dplyr::mutate(.observed = exp(broom::augment(x)[[1]]),
+                    .fitted = exp(.fitted),
+                    .resid = .observed - .fitted,
+                    .residP = (.resid/.observed)*100)
   }else{
-    dfplot$.residP <- (dfplot$.resid*100)/ dfplot[[dv]]
+    dfplot <- dfplot %>%
+      dplyr::mutate(.observed = .[[1]],
+                    .residP = (.resid/.observed)*100)
   }
-
-
 
 
   #list variables
@@ -61,13 +64,14 @@ plot_resid_ev.lm <- function(x, data = NULL, exp_variables = NULL, ncol = NULL, 
   #plot_fun
   #funcao para plotagem baseada no fortify
   plot_data_column = function (dfcol, data) {
+    limits <- ifelse(ceiling(max(abs(data$.residP))) > 100, 100, ceiling(max(abs(data$.residP))))
     ggplot2::ggplot(data,
                     ggplot2::aes_string(x = dfcol, y = ".residP")) +
       ggplot2::geom_point(alpha =0.3) +
       ggplot2::geom_hline(yintercept = 0, size = 0.7) +
       ggplot2::labs(x = dfcol, y = "resid%") +
-      ggplot2::ylim(-1*max(abs(data$.residP)),
-                    max(abs(data$.residP)))+
+      ggplot2::ylim(-1*limits,
+                    limits)+
       ggplot2::theme_minimal()
   }
 

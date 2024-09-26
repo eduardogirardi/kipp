@@ -28,18 +28,29 @@ plot_dispersion <- function(x, ...){
 #' @export
 plot_dispersion.lm <- function(x, data = NULL, exp_variables = NULL, delog = F, ncol = NULL, nrow = NULL, title = NULL) {
 
-  #create a dtplot
+  #create a df
   if( !(is.null(data)) ){
-    if( nrow(data) == nrow(ggplot2::fortify(x)) ){
-      dfplot <- cbind(ggplot2::fortify(x), data[,(names(data) %in% names(ggplot2::fortify(x))) == F])
+    if(nrow(data) == nrow(broom::augment(x)) ){
+      dfplot <-  broom::augment_columns(x, data)
     } else {
-      dfplot <- ggplot2::fortify(x)
+      dfplot <- broom::augment(x)
     }
   } else {
-    dfplot <- ggplot2::fortify(x)
+    dfplot <- broom::augment(x)
   }
 
-  dfplot$.residP <- (dfplot$.resid*100)/ dfplot[[toString(x$call[[2]][2])]]
+
+  if(delog){
+    dfplot <- dfplot %>%
+      dplyr::mutate(.observed = exp(broom::augment(x)[[1]]),
+                    .fitted = exp(.fitted),
+                    .resid = .observed - .fitted,
+                    .residP = (.resid/.observed)*100)
+  }else{
+    dfplot <- dfplot %>%
+      dplyr::mutate(.observed = .[[1]],
+                    .residP = (.resid/.observed)*100)
+  }
 
   #list variables
   if (!is.null(exp_variables) & all( exp_variables %in% names(dfplot))) {
@@ -48,31 +59,25 @@ plot_dispersion.lm <- function(x, data = NULL, exp_variables = NULL, delog = F, 
     lstVI <- as.list(names(dfplot[,(!grepl("^\\.", names(dfplot))) &
                                     (names(dfplot) != toString(x$call[[2]][2])) ]))
   }
-  #lstVI <- as.list(names(data))
+
 
 
   #plot_fun
-  plot_data_column2 = function (data, dfcol, delog, x) {
+  plot_data_column2 = function (dfcol, data, x) {
+
     cl <- c("observed" = "grey", "fitted" = "black")
-    if(delog == T){
-      ggplot2::ggplot(data = data) +
-        ggplot2::geom_point(ggplot2::aes(x = !!rlang::sym(dfcol), y = exp(ggplot2::fortify(x)[,1]), color = "observed")) +
-        ggplot2::geom_point(ggplot2::aes(x = !!rlang::sym(dfcol), y = exp(.fitted), color = "fitted")) +
-        ggplot2::labs(y = all.vars(x$call)[1], x = dfcol)+
-        ggplot2::scale_color_manual(values = cl) +
-        ggplot2::theme_minimal() %+replace% ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank(), legend.key.size = ggplot2::unit(3, "mm"))
-    } else{
-      ggplot2::ggplot(data = data) +
-        ggplot2::geom_point(ggplot2::aes(x = !!rlang::sym(dfcol), y = (ggplot2::fortify(x)[,1]), color = "observed")) +
-        ggplot2::geom_point(ggplot2::aes(x = !!rlang::sym(dfcol), y = (.fitted), color = "fitted")) +
-        ggplot2::labs(y = toString(x$call[[2]][2]), x = dfcol)+
-        ggplot2::scale_color_manual(values = cl) +
-        ggplot2::theme_minimal() %+replace% ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank(), legend.key.size = ggplot2::unit(3, "mm"))
-    }
+
+    ggplot2::ggplot(data = data) +
+      ggplot2::geom_point(ggplot2::aes(x = !!rlang::sym(dfcol), y = .observed, color = "observed")) +
+      ggplot2::geom_point(ggplot2::aes(x = !!rlang::sym(dfcol), y = .fitted, color = "fitted")) +
+      ggplot2::labs(y = all.vars(x$call)[1], x = dfcol)+
+      ggplot2::scale_color_manual(values = cl) +
+      ggplot2::theme_minimal() %+replace% ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank(), legend.key.size = ggplot2::unit(3, "mm"))
+
   }
 
   #apply fun
-  lstdisp <- lapply(lstVI, plot_data_column2, data = dfplot, delog = delog, x = x)
+  lstdisp <- lapply(lstVI, plot_data_column2, data = dfplot, x = x)
   names(lstdisp) <- lstVI
 
   #resume plot

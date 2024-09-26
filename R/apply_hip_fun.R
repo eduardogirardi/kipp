@@ -87,6 +87,14 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
                                              !is.na(!!h3) ~ !!h3,
                                              !is.na(!!h4) ~ !!h4))
 
+    bd <- bd %>%
+      dplyr::mutate(mol_sel = dplyr::case_when(!is.na(!!h1) ~ priority[[1]],
+                                               !is.na(!!h2) ~ priority[[2]],
+                                               !is.na(!!h3) ~ priority[[3]],
+                                               !is.na(!!h4) ~ priority[[4]]))
+
+
+
   } else if(by.model_sel & "model_sel" %in% names(bd)){
 
     bd <- bd %>%

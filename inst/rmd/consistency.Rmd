@@ -76,7 +76,7 @@ DT::datatable(int_am,
 ## Codigos qualitativos
 
 ```{r codigos, echo = F, warning = F}
-cq <- table(tidyr::replace_na(bd$cod1, "."), tidyr::replace_na(bd$cod2, "."))
+cq <- table(tidyr::replace_na(bd$cod2, "."), tidyr::replace_na(bd$cod1, "."))
 cq <- as.data.frame.matrix(cq)
 cq <- data.frame(cod = row.names(cq), cq)
 cq <- janitor::adorn_totals(cq)
