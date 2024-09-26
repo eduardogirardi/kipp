@@ -7,9 +7,9 @@
 consistency(
   bd,
   path_outputs,
-  im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+  im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
   ie = c("especie", "matgen", "regime", "classe_idade"),
-  it = c("rf", "talhao", "ciclo", "rotacao")
+  it = c("centro", "rf", "talhao", "ciclo", "rotacao")
 )
 }
 \arguments{
@@ -31,9 +31,9 @@ Esta função ira gerar o relatorio de consistencia \cr
 }
 \examples{
 
-im <- c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")
+im <- c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")
 ie <- c("especie", "matgen", "regime", "classe_idade")
-it <- c("rf", "talhao", "ciclo", "rotacao")
+it <- c("centro", "rf", "talhao", "ciclo", "rotacao")
 
  consistency(bd, path_outputs, im, ie)
 

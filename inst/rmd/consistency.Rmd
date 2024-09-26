@@ -77,8 +77,12 @@ DT::datatable(int_am,
 
 ```{r codigos, echo = F, warning = F}
 cq <- table(tidyr::replace_na(bd$cod1, "."), tidyr::replace_na(bd$cod2, "."))
+cq <- as.data.frame.matrix(cq)
+cq <- data.frame(cod = row.names(cq), cq)
+cq <- janitor::adorn_totals(cq)
 
-DT::datatable(cq)
+DT::datatable(cq, rownames = FALSE, options = list(pageLength = 30)) %>% 
+  DT::formatStyle(columns = 1, fontWeight = 'bold')
 ```
 
 ## Lados, area e inclinacao
@@ -89,9 +93,13 @@ il <- c(im, "lado1", "lado2", "area_parc", "inc1", "inc2")
 
 lai <- bd %>% 
   dplyr::select(tidyselect::all_of(il)) %>%
-  dplyr::distinct_all()
+  dplyr::distinct_all() %>% 
+  dplyr::mutate(lado1 = lado1/10,
+                lado2 = lado2/10)
 
-knitr::kable(lai)
+DT::datatable(lai,  rownames = FALSE, filter = 'top',
+              colnames = c(im, "lado1 [m]", "lado2 [m]", "area da parcela [m²]", "inclinação1 [°]", "inclinação2 [°]")) %>% 
+  DT::formatRound(c("lado1", "lado2", "area_parc", "inc1", "inc2"), digits = 1)
 
 ```
 
@@ -99,38 +107,38 @@ knitr::kable(lai)
 
 ```{r arvores, echo = F, warning = F}
 
-cod_cova <- c("Y", "Z", "ZA")
-cod_fuste <- c("F", "M", "N", "CA", "CR", "Y", "Z", "ZA")
-
-options(dplyr.summarise.inform = FALSE)
+il <- c(im, "area_parc", "covas", "arvores", "fustes")
 
 den <- bd %>% 
-  dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
-  dplyr::summarise(n_covas_parc = length(area_parc[!cod1 %in% cod_cova &
-                                                     !cod2 %in% cod_cova]),
-                   n_arvores_parc = length(area_parc[!cod1 %in% cod_fuste &
-                                                       !cod2 %in% cod_fuste &
-                                                       fuste == 1]),
-                   n_fustes_parc = length(area_parc[!cod1 %in% cod_fuste &
-                                                      !cod2 %in% cod_fuste]),
-                   n_covas_ha = round((10000*n_covas_parc)/max(area_parc),0),
-                   n_arvores_ha = round((10000*n_arvores_parc)/max(area_parc),0),
-                   n_fustes_ha = round((10000*n_fustes_parc)/max(area_parc),0))
+  dplyr::select(tidyselect::all_of(il)) %>%
+  dplyr::distinct_all()
 
-knitr::kable(den)
+DT::datatable(den,  rownames = FALSE, filter = 'top',
+              colnames = c(im, "area da parcela [m²]", "covas [n/ha]", "arvores [n/ha]", "fustes [n/ha]")) %>% 
+  DT::formatRound(c("area_parc", "covas", "arvores", "fustes"), digits = 0)
 
 ```
 
+
+
+```{r, echo=FALSE,include = FALSE}
+# You need this code to conduct the magic dependences attaching...
+DT::datatable(matrix())
+```
+
+
 ## Histograma classe diametrica
 
-```{r histograma, results='asis', echo = F, warning = F}
+```{r histograma, results = 'asis', echo = F, warning = F}
 
 #clean data
 codigos_sujos <- c("ZA", "Z", "Y", "CA", "CR", "M", "N", "F")
 
 bdp <- bd %>% 
   dplyr::filter(!(cod1 %in% codigos_sujos)) %>% 
-  dplyr::filter(!(cod2 %in% codigos_sujos))
+  dplyr::filter(!(cod2 %in% codigos_sujos)) %>% 
+  dplyr::filter(!(cod1 == "D" & dap <= 0)) %>% 
+  dplyr::filter(!(cod2 == "D" & dap <= 0))
 
 #campo estrato
 bdp <- bdp %>% 
@@ -139,7 +147,6 @@ bdp <- bdp %>%
 #classes de dap
 bdp <- bdp %>% 
   dplyr::mutate(classe_dap = cut(bdp$dap, seq(0, max(bd$dap)+5, 5)))
-
 
 
 #funcao plot
@@ -163,9 +170,14 @@ plot_diametro <- function(x) {
   cat("\n", sep = "")
   print(p1)
   cat("\n", sep = "")
-  print(knitr::kable(rx, digits = 1))
+  cat(knitr::knit_print(DT::datatable(rx,  rownames = FALSE, filter = 'top', width = "100%") %>% 
+                          DT::formatRound(c("dap_min", "dap_med", "dap_max", "dap_cv", "dap_ima"), digits = 1)))
+  # cat(knitr::knit_print(DT::datatable(rx, rownames = FALSE, filter = 'top',
+  #              colnames = c(im, "h_min [cm]", "h_med [cm]", "h_max [cm]", "h_cv [cm]", "h_ima [cm/ano]", "n_observacoes [n]")) %>%
+  #          DT::formatRound(c("h_min", "h_med", "h_max", "h_cv", "h_ima"), digits = 1)))
   cat("\n", sep = "")
   cat("  \n\n  __________________  ", sep = "")
+
  
   
 }
@@ -183,10 +195,10 @@ bdp <- bdp %>%
 
 ## Relacao d/h
 
-```{r d_h, results='asis', echo = F, warning = F}
+```{r d_h, results = 'asis', echo = F, warning = F}
 
 #clean data
-codigos_sujos <- c("ZA", "Z", "Y", "CA", "CR", "M", "N", "F", "Q", "V", "VV", "W")
+codigos_sujos <- c("ZA", "Z", "Y", "CA", "CR", "M", "N", "F", "Q", "V", "W", "D")
 
 bdp <- bd %>% 
   dplyr::filter(!(cod1 %in% codigos_sujos)) %>% 
@@ -219,9 +231,14 @@ plot_diametro <- function(x) {
   cat("\n", sep = "")
   print(p1)
   cat("\n", sep = "")
-  print(knitr::kable(rx, digits = 1))
+  cat(knitr::knit_print(DT::datatable(rx,  rownames = FALSE, filter = 'top', width = "100%") %>% 
+                          DT::formatRound(c("h_min", "h_med", "h_max", "h_cv", "h_ima"), digits = 1)))
+  # cat(knitr::knit_print(DT::datatable(rx, rownames = FALSE, filter = 'top',
+  #              colnames = c(im, "h_min [cm]", "h_med [cm]", "h_max [cm]", "h_cv [cm]", "h_ima [cm/ano]", "n_observacoes [n]")) %>%
+  #          DT::formatRound(c("h_min", "h_med", "h_max", "h_cv", "h_ima"), digits = 1)))
   cat("\n", sep = "")
   cat("  \n\n  __________________  ", sep = "")
+
  
   
 }
@@ -229,6 +246,7 @@ plot_diametro <- function(x) {
 cat("\n", sep = "")
 print(paste0("Estrato: ", paste(ie, collapse = "_")))
 cat("\n", sep = "")
+
 
 #split e plot
 bdp <- bdp %>% 

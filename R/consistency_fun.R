@@ -14,9 +14,9 @@
 #'
 #' @examples
 #'
-#' im <- c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")
+#' im <- c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")
 #' ie <- c("especie", "matgen", "regime", "classe_idade")
-#' it <- c("rf", "talhao", "ciclo", "rotacao")
+#' it <- c("centro", "rf", "talhao", "ciclo", "rotacao")
 #'
 #'  consistency(bd, path_outputs, im, ie)
 #'
@@ -27,9 +27,9 @@
 
 consistency <- function(bd,
                         path_outputs,
-                        im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+                        im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
                         ie = c("especie", "matgen", "regime", "classe_idade"),
-                        it = c("rf", "talhao", "ciclo", "rotacao")){
+                        it = c("centro", "rf", "talhao", "ciclo", "rotacao")){
 
   # run rmd -----------------------------------------------------------------
 

@@ -30,7 +30,7 @@
 #'
 #' @examples
 #'
-#'  dc <- cal_var(bd, by.assmann = F, cor_area = F, im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"))
+#'  dc <- cal_var(bd, by.assmann = F, cor_area = F, im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"))
 #'
 #' @export
 #'
@@ -81,7 +81,7 @@
 cal_var <- function(x,
                     by.assmann = FALSE,
                     cor_area = FALSE,
-                    im = c("rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")){
+                    im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med")){
 
 
 
