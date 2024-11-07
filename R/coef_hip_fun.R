@@ -17,7 +17,8 @@
 coef_hip <- function(folder_path){
 
   #defini as variaveis a serem removidas do dataframe
-  rmvars <- c("r.squared",
+  rmvars <- c("model",
+              "r.squared",
               "adj.r.squared",
               "sigma",
               "sigmaP",
@@ -38,28 +39,28 @@ coef_hip <- function(folder_path){
   if(file.exists(file.path(folder_path, "coefs_scolforo.csv"))){
 
     lst_coefs$sf <- readr::read_csv2(file.path(folder_path, "coefs_scolforo.csv")) %>%
-      dplyr::select(-1, -tidyselect::all_of(rmvars)) %>%
+      dplyr::select(-tidyselect::all_of(rmvars)) %>%
       dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_sf"))
 
   }
   if (file.exists(file.path(folder_path, "coefs_scolforo_simp.csv"))){
 
     lst_coefs$ss <-  readr::read_csv2(file.path(folder_path, "coefs_scolforo_simp.csv")) %>%
-      dplyr::select(-1, -tidyselect::all_of(rmvars)) %>%
+      dplyr::select(-tidyselect::all_of(rmvars)) %>%
       dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ss"))
 
   }
   if (file.exists(file.path(folder_path, "coefs_pettersen.csv"))){
 
     lst_coefs$pt <- readr::read_csv2(file.path(folder_path, "coefs_pettersen.csv")) %>%
-      dplyr::select(-1, -tidyselect::all_of(rmvars)) %>%
+      dplyr::select(-tidyselect::all_of(rmvars)) %>%
       dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_pt"))
 
   }
   if (file.exists(file.path(folder_path, "coefs_curtis.csv"))){
 
     lst_coefs$ct <- readr::read_csv2(file.path(folder_path, "coefs_curtis.csv")) %>%
-      dplyr::select(-1, -tidyselect::all_of(rmvars)) %>%
+      dplyr::select(-tidyselect::all_of(rmvars)) %>%
       dplyr::rename_if(stringr::str_detect(names(.), "b[[:digit:]]{1}"), ~paste0(. , "_ct"))
 
   }

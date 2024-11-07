@@ -53,13 +53,13 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
   #estima a altura utilizando os coeficientes para cada modelo
   bd <- bd %>%
     dplyr::mutate(h_sf = dplyr::case_when(dap == 0 & !is.na(b0_sf) ~ 0,
-                                          TRUE ~ exp(b0_sf + (b1_sf*log(hdom)) + (b2_sf*log((dg/dap))) + (b3_sf*(1/dap)) + (b4_sf*(1/(dap*idade))))),
+                                          TRUE ~ round(exp(b0_sf + (b1_sf*log(hdom)) + (b2_sf*log((dg/dap))) + (b3_sf*(1/dap)) + (b4_sf*(1/(dap*idade)))), 4)),
                   h_ss = dplyr::case_when(dap == 0 & !is.na(b0_ss)~ 0,
-                                          TRUE ~ exp(b0_ss + (b1_ss*log(hdom)) + (b2_ss*log((dg/dap))) + (b3_ss*(1/dap)))),
+                                          TRUE ~ round(exp(b0_ss + (b1_ss*log(hdom)) + (b2_ss*log((dg/dap))) + (b3_ss*(1/dap))), 4)),
                   h_pt = dplyr::case_when(dap == 0 & !is.na(b0_pt) ~ 0,
-                                          TRUE ~ exp(b0_pt + (b1_pt*log(dap)) + (b2_pt*(log(dap)^2)))),
+                                          TRUE ~ round(exp(b0_pt + (b1_pt*log(dap)) + (b2_pt*(log(dap)^2))), 4)),
                   h_ct = dplyr::case_when(dap == 0 & !is.na(b0_ct) ~ 0,
-                                          TRUE ~ exp(b0_ct + (b1_ct*log(1/dap)))))
+                                          TRUE ~ round(exp(b0_ct + (b1_ct*log(1/dap))), 4)))
 
   #remove alturas estimadas < 1.6
   bd <- bd %>%
@@ -82,7 +82,7 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
     h4 <- rlang::sym(paste0("h_", priority[[4]]))
 
     bd <- bd %>%
-      dplyr::mutate(h_est = dplyr::case_when(!is.na(!!h1) ~ !!h1,
+      dplyr::mutate(hest = dplyr::case_when(!is.na(!!h1) ~ !!h1,
                                              !is.na(!!h2) ~ !!h2,
                                              !is.na(!!h3) ~ !!h3,
                                              !is.na(!!h4) ~ !!h4))
@@ -98,7 +98,7 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
   } else if(by.model_sel & "model_sel" %in% names(bd)){
 
     bd <- bd %>%
-      dplyr::mutate(h_est = dplyr::case_when(model_sel == "scolforo" ~ h_sf,
+      dplyr::mutate(hest = dplyr::case_when(model_sel == "scolforo" ~ h_sf,
                                              model_sel == "scolforo_simp" ~ h_ss,
                                              model_sel == "pettersen" ~ h_pt,
                                              model_sel == "curtis" ~ h_ct))
@@ -111,20 +111,23 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
 
   #salva os valores de altura observados em uma nova variavel
   bd <- bd %>%
-    dplyr::mutate(h_obs = h)
+    dplyr::mutate(hobs = h)
 
   #salva a altura de quebra
   bd <- bd %>%
-    dplyr::mutate(h_quebra = dplyr::case_when(cod1 == "Q" | cod2 == "Q" ~ h_obs,
+    dplyr::mutate(hqbr = dplyr::case_when(cod1 == "Q" | cod2 == "Q" ~ round(hobs, 4),
                                               TRUE ~ NA_real_))
 
   #gera o campo h com as alturas totais (inclusive das quebradas) ordenando observadas e estimadas
   bd <- bd %>%
-    dplyr::mutate(h = dplyr::case_when(h_obs > 0 &
+    dplyr::mutate(h = dplyr::case_when(hobs > 0 &
                                          (cod1 != "Q" | is.na(cod1)) &
-                                         (cod2 != "Q" | is.na(cod2))  ~ h_obs,
-                                       TRUE ~ h_est)) %>%
-    dplyr::relocate(h, .after = h_quebra)
+                                         (cod2 != "Q" | is.na(cod2))  ~ round(hobs, 4),
+                                       TRUE ~ hest)) %>%
+    dplyr::relocate(h, .after = hqbr)
+
+  bd <- bd %>%
+    dplyr::select(-tidyselect::matches("^b[0-9]_*"))
 
   return(bd)
 

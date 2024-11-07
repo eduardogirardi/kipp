@@ -62,21 +62,6 @@
 #7 - adiciona numero de fuste
 #8 - calcula densidade de plantio
 
-#dplyr::mutate
-#dplyr::case_when
-#pracma::deg2rad
-#dplyr::filter
-#dplyr::group_by
-#dplyr::group_modify
-#dplyr::across
-#tidyselect::all_of
-#dplyr::summarise
-#dplyr::ungroup
-#dplyr::left_join
-#dplyr::slice_max
-#dplyr::first
-#dplyr::row_number
-
 
 cal_var <- function(x,
                     by.assmann = FALSE,
@@ -89,10 +74,10 @@ cal_var <- function(x,
   # calulo dap, g, h, area_parc ---------------------------------------------
 
   x <- x %>%
-    dplyr::mutate(dap =  cap/(pi*10),
+    dplyr::mutate(dap =  round(cap/(pi*10), 4),
                   dap = tidyr::replace_na(dap, 0),
-                  g = pi*(dap/200)^2,
-                  h = alt/10,
+                  g = round(pi*(dap/200)^2, 4),
+                  h = round(alt/10, 4),
                   h = tidyr::replace_na(h, 0))
 
 
@@ -110,6 +95,9 @@ cal_var <- function(x,
       dplyr::mutate(area_parc = dplyr::case_when(forma == "C" ~ (((lado1/10)^2) * pi),
                                                  TRUE ~ ((lado1/10) * (lado2/10))))
   }
+
+  x <- x %>%
+    dplyr::mutate(area_parc = round(area_parc, 4))
 
 
   # Calculando hdom, ddom ---------------------------------------------------
@@ -191,6 +179,10 @@ cal_var <- function(x,
     }
   }
 
+  x <- x %>%
+    dplyr::mutate(hdom = round(hdom, 4),
+                  ddom = round(ddom, 4))
+
   # calculo do dg e ab ------------------------------------------------------
 
   #codigos removidos
@@ -201,8 +193,12 @@ cal_var <- function(x,
                                        !cod1 %in% cs &
                                        !cod2 %in% cs]^2 , na.rm = T)),
                   ab = (sum(g[!cod1 %in% cs &
-                               !cod2 %in% cs])*10000)/area_parc) %>%
+                                !cod2 %in% cs])*10000)/area_parc) %>%
     dplyr::ungroup()
+
+  x <- x %>%
+    dplyr::mutate(dg = round(dg, 4),
+                  ab = round(ab, 4))
 
 
 
@@ -210,14 +206,14 @@ cal_var <- function(x,
 
   x <- x %>%
     dplyr::mutate(dt_plt = dplyr::case_when(rotacao > 1 ~ dt_int,
-                                             TRUE ~ dt_plt),
+                                            TRUE ~ dt_plt),
                   ano_plt = format(dt_plt, "%Y"), .after = dt_plt)
 
 
   # calculo da idade --------------------------------------------------------
 
   x <- x %>%
-    dplyr::mutate(idade = as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25,
+    dplyr::mutate(idade = round(as.numeric(difftime(dt_med, dt_plt,  units = "days"))/365.25, 4),
                   classe_idade = round(idade))
 
 
@@ -227,9 +223,12 @@ cal_var <- function(x,
 
   x <- x %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(ia))) %>%
-    dplyr::mutate(fuste = dplyr::row_number(), .after = arvore) %>%
-    dplyr::ungroup()
-
+    dplyr::mutate(temp_fuste = dplyr::case_when(any(cod1 == "B" | cod2 == "B") ~ "b",
+                                                TRUE ~ NA_character_),
+                  fuste = dplyr::case_when(temp_fuste == "b"  ~ dplyr::row_number(),
+                                           TRUE ~ 1), .after = arvore) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-temp_fuste)
 
   # calculo densidade -------------------------------------------------------
 
@@ -243,13 +242,13 @@ cal_var <- function(x,
     dplyr::mutate(id_temp = paste(linha, arvore, fuste, sep = "_")) %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
     dplyr::mutate(covas_parc = dplyr::n_distinct(id_temp[!cod1 %in% cod_cova &
-                                                    !cod2 %in% cod_cova &
-                                                    fuste == 1]),
+                                                           !cod2 %in% cod_cova &
+                                                           fuste == 1]),
                   arvores_parc = dplyr::n_distinct(id_temp[!cod1 %in% cod_fuste &
-                                                      !cod2 %in% cod_fuste &
-                                                      fuste == 1]),
+                                                             !cod2 %in% cod_fuste &
+                                                             fuste == 1]),
                   fustes_parc = dplyr::n_distinct(id_temp[!cod1 %in% cod_fuste &
-                                                     !cod2 %in% cod_fuste]),
+                                                            !cod2 %in% cod_fuste]),
                   percC_parc = dplyr::n_distinct(id_temp[!cod1 %in% cod_percC &
                                                            !cod2 %in% cod_percC &
                                                            fuste == 1]),
@@ -318,31 +317,34 @@ cal_var <- function(x,
 
   #calculo da proporcao de cada codigo
   cods <- cods %>%
-    dplyr::mutate(prop_cod = dplyr::case_when(cod == "SC" ~ (n / covas_parc)*100, #sem codigo
-                                              cod == "A" ~ (n / fustes_parc)*100, #bifurcada acima
-                                              cod == "B" ~ (n / arvores_parc)*100, #bifurcada abaixo
-                                              cod == "CA" ~ (n / percC_parc)*100, #caida deitada
-                                              cod == "CR" ~ (n / percC_parc)*100, #caida raiz
-                                              cod == "D" ~ (n / fustes_parc)*100, #dominada
-                                              cod == "E" ~ (n / arvores_parc)*100, #marcada para sair
-                                              cod == "F" ~ (n / covas_parc)*100, #falha
-                                              cod == "G" ~ (n / fustes_parc)*100, #geada
-                                              cod == "H" ~ (n / fustes_parc)*100, #dominante
-                                              cod == "I" ~ (n / fustes_parc)*100, #praga doenca
-                                              cod == "J" ~ (n / fustes_parc)*100, #macaco_com_rec
-                                              cod == "K" ~ (n / fustes_parc)*100, #macaco_sem_rec
-                                              cod == "L" ~ (n / fustes_parc)*100, #atacada por vespa
-                                              cod == "M" ~ (n / covas_parc)*100, #morta
-                                              cod == "N" ~ (n / covas_parc)*100, #morta macaco
-                                              cod == "P" ~ (n / fustes_parc)*100, #pontera seca
-                                              cod == "Q" ~ (n / fustes_parc)*100, #quebrada
-                                              cod == "R" ~ (n / fustes_parc)*100, #rebrota
-                                              cod == "S" ~ (n / fustes_parc)*100, #formiga
-                                              cod == "T" ~ (n / fustes_parc)*100, #torta
-                                              cod == "U" ~ (n / fustes_parc)*100, #fox_tail
-                                              cod == "V" ~ (n / fustes_parc)*100, #inclinada vento
-                                              cod == "W" ~ (n / fustes_parc)*100, #deitada vento
-                                              cod == "X" ~ (n / fustes_parc)*100)) #verida na base
+    dplyr::mutate(prop_cod = dplyr::case_when(cod == "SC" ~ round((n / covas_parc)*100, 2), #sem codigo
+                                              cod == "A" ~ round((n / fustes_parc)*100, 2), #bifurcada acima
+                                              cod == "B" ~ round((n / arvores_parc)*100, 2), #bifurcada abaixo
+                                              cod == "CA" ~ round((n / percC_parc)*100, 2), #caida deitada
+                                              cod == "CR" ~ round((n / percC_parc)*100, 2), #caida raiz
+                                              cod == "D" ~ round((n / fustes_parc)*100, 2), #dominada
+                                              cod == "E" ~ round((n / arvores_parc)*100, 2), #marcada para sair
+                                              cod == "F" ~ round((n / covas_parc)*100, 2), #falha
+                                              cod == "G" ~ round((n / fustes_parc)*100, 2), #geada
+                                              cod == "H" ~ round((n / fustes_parc)*100, 2), #dominante
+                                              cod == "I" ~ round((n / fustes_parc)*100, 2), #praga doenca
+                                              cod == "J" ~ round((n / fustes_parc)*100, 2),#macaco_com_rec
+                                              cod == "K" ~ round((n / fustes_parc)*100, 2),#macaco_sem_rec
+                                              cod == "L" ~ round((n / fustes_parc)*100, 2),#atacada por vespa
+                                              cod == "M" ~ round((n / covas_parc)*100, 2), #morta
+                                              cod == "N" ~ round((n / covas_parc)*100, 2), #morta macaco
+                                              cod == "O" ~ round((n / covas_parc)*100, 2), #
+                                              cod == "P" ~ round((n / fustes_parc)*100, 2), #pontera seca
+                                              cod == "Q" ~ round((n / fustes_parc)*100, 2), #quebrada
+                                              cod == "R" ~ round((n / fustes_parc)*100, 2), #rebrota
+                                              cod == "S" ~ round((n / fustes_parc)*100, 2), #formiga
+                                              cod == "T" ~ round((n / fustes_parc)*100, 2), #torta
+                                              cod == "U" ~ round((n / fustes_parc)*100, 2), #fox_tail
+                                              cod == "V" ~ round((n / fustes_parc)*100, 2), #inclinada vento
+                                              cod == "W" ~ round((n / fustes_parc)*100, 2), #deitada vento
+                                              cod == "X" ~ round((n / fustes_parc)*100, 2), #verida na base
+                                              cod == "Y" ~ round((n / covas_parc)*100, 2), #
+                                              cod == "Z" ~ round((n / fustes_parc)*100, 2))) #
 
   cd <- c("c_SC", #sem codigo
           "c_A", #bifurcada acima
@@ -359,7 +361,8 @@ cal_var <- function(x,
           "c_K", #macaco_sem_rec
           "c_L", #atacada por vespa
           "c_M", #morta
-          "c_N",  #morta macaco
+          "c_N", #morta macaco
+          "c_O", #
           "c_P", #pontera seca
           "c_Q", #quebrada
           "c_R", #rebrota
@@ -368,7 +371,9 @@ cal_var <- function(x,
           "c_U", #fox_tail
           "c_V", #inclinada vento
           "c_W", #deitada vento
-          "c_X") #verida na base
+          "c_X", #verida na base
+          "c_Y", #
+          "c_Z") #
 
 
   cods <- cods %>%
