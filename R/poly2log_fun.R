@@ -9,8 +9,8 @@
 #' @param h_toco altura de corte da arvore em metros. O Padrão é 0.1m
 #' @param dwg se TRUE, sera considerado apenas o ultimo produto dos sortimentos ate a h_dwg. O padrão é FALSE.
 #' @param h_dwg altura em metros (caso dwg for TRUE) ate a qual sera realizado a extração de toras seguindo os produtos descritos no sortimento, apos essa altura sera apenas utilizado o ultimo sortimento (menor D.P.F.)
-#' @param qbd se TRUE, sera simulada a extração de toras apenas ate a h_qbr. O padrao é falso FALSE.
-#' @param h_qbr altura em metros (caso qbd for TRUE) ate a qual sera realizado a extração de toras. Caso qbd for TRUE e o valor de h_qbr for NA ou 0, esse sera calculado utilizando 70% da altura toral.
+#' @param qbr se TRUE, sera simulada a extração de toras apenas ate a h_qbr. O padrao é falso FALSE.
+#' @param h_qbr altura em metros (caso qbr for TRUE) ate a qual sera realizado a extração de toras. Caso qbr for TRUE e o valor de h_qbr for NA ou 0, esse sera calculado utilizando 70% da altura toral.
 #' @param suprimir se TRUE, nao sera simulada a extração de nenhuma tora. Os valores de volume serao zerados. O padrão é FALSE. Aplica-se a DAPs e altura total zeradas, assim como falta de coeficientes da curva de afilamento.
 #' @param b0 b0 do polinomio (Schöepfer, 1996)
 #' @param b1 b1 do polinomio (Schöepfer, 1996)
@@ -46,7 +46,7 @@
 # sortimento <- bd_tree$assort[[tr]]
 # h_toco <- bd_tree$h_toco[tr]
 # dwg <- bd_tree$dwg[tr]
-# qbd <- bd_tree$qbd[tr]
+# qbr <- bd_tree$qbr[tr]
 # h_dwg <- bd_tree$h_dwg[tr]
 # h_qbr <- bd_tree$h_quebra[tr]
 # suprimir <- bd_tree$suprimir[tr]
@@ -58,7 +58,7 @@ poly2log <-  function(h,
                       h_toco = .1,
                       dwg = F,
                       h_dwg,
-                      qbd = F,
+                      qbr = F,
                       h_qbr,
                       suprimir = F,
                       b0 = b0,
@@ -79,8 +79,8 @@ poly2log <-  function(h,
   if (missing(suprimir) | is.na(suprimir)) {
     suprimir <- FALSE
   }
-  if (missing(qbd) | is.na(qbd)) {
-    qbd <- FALSE
+  if (missing(qbr) | is.na(qbr)) {
+    qbr <- FALSE
   }
 
   #ajusta falta das alturas de apoio
@@ -88,15 +88,15 @@ poly2log <-  function(h,
     h_dwg <- 0
   }
 
-  if(qbd & (missing(h_qbr) | is.na(h_qbr) | h_qbr == 0)){
+  if(qbr & (missing(h_qbr) | is.na(h_qbr) | h_qbr == 0)){
     h_qbr <- h * 0.7
   }
 
-  if(qbd & dwg){
+  if(qbr & dwg){
     h_dwg <- 0
   }
 
-  if(!qbd & !dwg){
+  if(!qbr & !dwg){
     h_dwg <- h
     h_qbr <- h
   }
@@ -135,15 +135,15 @@ poly2log <-  function(h,
       psort <- sortimento[[i, 5]]/100
       harv_dsort <- round(kipp::poly2hi(di = dsort, h = h, dap = dap, b0, b1, b2, b3, b4, b5),3)
 
-      if ((dwg & !qbd & i < nrow(sortimento)) & harv_dsort > h_dwg) {
+      if ((dwg & !qbr & i < nrow(sortimento)) & harv_dsort > h_dwg) {
         harv_dsort <- h_dwg
       }
 
-      if(qbd & !dwg & harv_dsort > h_qbr){
+      if(qbr & !dwg & harv_dsort > h_qbr){
         harv_dsort <- h_qbr
       }
 
-      if(qbd & dwg){
+      if(qbr & dwg){
         if(i < nrow(sortimento)){
           harv_dsort <- h_dwg
         }
