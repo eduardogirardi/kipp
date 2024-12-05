@@ -127,6 +127,20 @@ read_sort <- function(file, guess_max = 30000, ...){
     dplyr::group_by(padrao) %>%
     tidyr::nest(.key = "assort")
 
+  #função de concatenacao do df de sortimentos
+  concat_df <- function(df, separator = "|") {
+    # Converter cada linha em uma string concatenada
+    concatenated_rows <- apply(df, 1, function(row) paste(row, collapse = "_"))
+
+    # Concatenar todas as linhas em uma única string
+    result <- paste(concatenated_rows, collapse = separator)
+
+    return(result)
+  }
+
+  assort <- assort %>%
+    dplyr::mutate(desc_sort = purrr::map(assort, concat_df))
+
 
   return(assort)
 }

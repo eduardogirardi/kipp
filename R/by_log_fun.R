@@ -24,16 +24,15 @@
 
 by_log <-  function(bd,
                     im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+                    ie = c(),
                     cores = 4) {
-
-
 
 
   #organizando DF
   bd <- bd %>%
     dplyr::select(tidyselect::all_of(c("atividade",
-                                       c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
-                                       im,
+                                       union(c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+                                       im),
                                        "linha",
                                        "arvore",
                                        "fuste",
@@ -44,10 +43,8 @@ by_log <-  function(bd,
                                        "inc1",
                                        "inc2",
                                        "area_parc",
-                                       c("especie", "matgen",  "regime" , "ano_plt"),
-                                       ie,
-                                       "idade",
-                                       "classe_idade",
+                                       union(c("especie", "matgen",  "regime" , "dt_plt", "ano_plt", "idade", "classe_idade"),
+                                       ie),
                                        "cod1",
                                        "cod2",
                                        "codQ",

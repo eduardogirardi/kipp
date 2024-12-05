@@ -163,5 +163,6 @@ apply_vol <- function(bd,
     dplyr::mutate(vtot = tidyr::replace_na(vtot, 0),
                   vpont = tidyr::replace_na(vpont, 0))
 
+  return(bd)
 }
 

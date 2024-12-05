@@ -7,6 +7,7 @@
 by_log(
   bd,
   im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
+  ie = c(),
   cores = 4
 )
 }
