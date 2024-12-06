@@ -6,7 +6,7 @@
 #' @param bd dataframe com a base dados a ser aplicada os modelos. Output da funcao \code{\link{cal_var()}}
 #' @param coefs lista dos coeficientes ajustados. Output da funcao \code{\link{fit_hip()}} ou \code{\link{coef_hip()}}
 #' @param priority vetor com a prioridade de modelo a ser utilizado na altura predita. c("scolforo_simp", "scolforo", "pettersen", "curtis")
-#' @param by.model_sel se TRUE sera utilizado o modelo pre-definido na variavel \strong{model_sel} presente no dataframe \strong{bd}. c("scolforo_simp", "scolforo", "pettersen", "curtis")
+#' @param by.hip_sel se TRUE sera utilizado o modelo pre-definido na variavel \strong{hip_sel} presente no dataframe \strong{bd}. c("scolforo_simp", "scolforo", "pettersen", "curtis")
 #'
 #' @return Dataframe contendo as variaveis preditas com os modelos inputados
 #'
@@ -21,15 +21,15 @@
 #' bd <- apply_hip(bd, coefs = hip, priority = priority)
 #'
 #' #OP2
-#' bd$model_sel <- "scolforo"
+#' bd$hip_sel <- "scolforo"
 #'
-#' bd <- apply_hip(bd, coefs = hip, priority = NULL, by.model_sel = T)
+#' bd <- apply_hip(bd, coefs = hip, priority = NULL, by.hip_sel = T)
 #'
 #' @export
 #'
 
 
-apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
+apply_hip <- function(bd, coefs, priority = NULL, by.hip_sel = F){
 
   #converte a classe das variaveis do dataframe
   coefs_aj <- purrr::map(coefs, readr::type_convert)
@@ -88,20 +88,20 @@ apply_hip <- function(bd, coefs, priority = NULL, by.model_sel = F){
                                              !is.na(!!h4) ~ !!h4))
 
     bd <- bd %>%
-      dplyr::mutate(mol_sel = dplyr::case_when(!is.na(!!h1) ~ priority[[1]],
+      dplyr::mutate(hip_sel = dplyr::case_when(!is.na(!!h1) ~ priority[[1]],
                                                !is.na(!!h2) ~ priority[[2]],
                                                !is.na(!!h3) ~ priority[[3]],
                                                !is.na(!!h4) ~ priority[[4]]))
 
 
 
-  } else if(by.model_sel & "model_sel" %in% names(bd)){
+  } else if(by.hip_sel & "hip_sel" %in% names(bd)){
 
     bd <- bd %>%
-      dplyr::mutate(hest = dplyr::case_when(model_sel == "scolforo" ~ h_sf,
-                                             model_sel == "scolforo_simp" ~ h_ss,
-                                             model_sel == "pettersen" ~ h_pt,
-                                             model_sel == "curtis" ~ h_ct))
+      dplyr::mutate(hest = dplyr::case_when(hip_sel == "scolforo" ~ h_sf,
+                                             hip_sel == "scolforo_simp" ~ h_ss,
+                                             hip_sel == "pettersen" ~ h_pt,
+                                             hip_sel == "curtis" ~ h_ct))
 
   } else {
 

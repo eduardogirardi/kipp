@@ -163,6 +163,17 @@ apply_vol <- function(bd,
     dplyr::mutate(vtot = tidyr::replace_na(vtot, 0),
                   vpont = tidyr::replace_na(vpont, 0))
 
+
+  #renomeio as variaveis que sao calculadas fora das função do kipp para padronização
+  bd <- bd %>%
+    dplyr::rename(htoco = !!h_toco_quo,
+                  dwg = !!dwg_quo,
+                  hdwg = !!h_dwg_quo,
+                  qbr = !!qbr_quo,
+                  hqbr = !!h_qbr_quo,
+                  suprimir = !!suprimir_quo)
+
+
   return(bd)
 }
 

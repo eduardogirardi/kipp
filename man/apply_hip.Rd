@@ -4,7 +4,7 @@
 \alias{apply_hip}
 \title{Aplicacao dos modelos hipsometricos}
 \usage{
-apply_hip(bd, coefs, priority = NULL, by.model_sel = F)
+apply_hip(bd, coefs, priority = NULL, by.hip_sel = F)
 }
 \arguments{
 \item{bd}{dataframe com a base dados a ser aplicada os modelos. Output da funcao \code{\link{cal_var()}}}
@@ -13,7 +13,7 @@ apply_hip(bd, coefs, priority = NULL, by.model_sel = F)
 
 \item{priority}{vetor com a prioridade de modelo a ser utilizado na altura predita. c("scolforo_simp", "scolforo", "pettersen", "curtis")}
 
-\item{by.model_sel}{se TRUE sera utilizado o modelo pre-definido na variavel \strong{model_sel} presente no dataframe \strong{bd}. c("scolforo_simp", "scolforo", "pettersen", "curtis")}
+\item{by.hip_sel}{se TRUE sera utilizado o modelo pre-definido na variavel \strong{hip_sel} presente no dataframe \strong{bd}. c("scolforo_simp", "scolforo", "pettersen", "curtis")}
 }
 \value{
 Dataframe contendo as variaveis preditas com os modelos inputados
@@ -32,8 +32,8 @@ priority <- c("scolforo_simp",
 bd <- apply_hip(bd, coefs = hip, priority = priority)
 
 #OP2
-bd$model_sel <- "scolforo"
+bd$hip_sel <- "scolforo"
 
-bd <- apply_hip(bd, coefs = hip, priority = NULL, by.model_sel = T)
+bd <- apply_hip(bd, coefs = hip, priority = NULL, by.hip_sel = T)
 
 }

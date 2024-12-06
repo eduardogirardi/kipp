@@ -7,12 +7,14 @@
 by_log(
   bd,
   im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
-  ie = c(),
+  ie = c("especie", "matgen", "regime", "classe_idade"),
   cores = 4
 )
 }
 \arguments{
 \item{im}{vetor com campos identificadores de medicao.}
+
+\item{ie}{vetor com campos identificadores de estrato.}
 
 \item{cores}{n° de nucleos de processamento. \strong{Padrão sao 4}
 \cr}
