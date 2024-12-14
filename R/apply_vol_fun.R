@@ -5,7 +5,7 @@
 #'
 #' @param bd base de dados para aplicação do volume
 #' @param cores n° de nucleos de processamento. \strong{Padrão sao 4}
-#' @param im vetor com campos identificadores de medicao
+#' @param im vetor com campos identificadores de medicao o padroa é \strong{Padrão será "centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"}
 #' @param h altura total da arvore - m
 #' @param dap diametro a 1,3m - m
 #' @param sortimento um data frame contendo a descrição dos sortimento. Para maiores informações checar a documentação da \code{\link{read_sort()}}.
@@ -21,6 +21,13 @@
 #' @param b3 b3 do polinomio (Schöepfer, 1996)
 #' @param b4 b4 do polinomio (Schöepfer, 1996)
 #' @param b5 b5 do polinomio (Schöepfer, 1996)
+#' @param b0_sc b0 do polinomio sem casca (Schöepfer, 1996)
+#' @param b1_sc b1 do polinomio sem casca (Schöepfer, 1996)
+#' @param b2_sc b2 do polinomio sem casca (Schöepfer, 1996)
+#' @param b3_sc b3 do polinomio sem casca (Schöepfer, 1996)
+#' @param b4_sc b4 do polinomio sem casca (Schöepfer, 1996)
+#' @param b5_sc b5 do polinomio sem casca (Schöepfer, 1996)
+#'
 #'
 #' @return um data frame contendo campos calculados com os volumes correspondentes
 #'
@@ -45,7 +52,13 @@
 #'           b2,
 #'           b3,
 #'           b4,
-#'           b5)
+#'           b5,
+#'           b0_sc,
+#'           b1_sc,
+#'           b2_sc,
+#'           b3_sc,
+#'           b4_sc,
+#'           b5_sc)
 #'
 #' @export
 #'
@@ -69,7 +82,13 @@ apply_vol <- function(bd,
                       b2,
                       b3,
                       b4,
-                      b5){
+                      b5,
+                      b0_sc,
+                      b1_sc,
+                      b2_sc,
+                      b3_sc,
+                      b4_sc,
+                      b5_sc){
 
 
   h_quo <- rlang::enquo(h)
@@ -87,6 +106,12 @@ apply_vol <- function(bd,
   b3_quo <- rlang::enquo(b3)
   b4_quo <- rlang::enquo(b4)
   b5_quo <- rlang::enquo(b5)
+  b0_sc_quo <- rlang::enquo(b0_sc)
+  b1_sc_quo <- rlang::enquo(b1_sc)
+  b2_sc_quo <- rlang::enquo(b2_sc)
+  b3_sc_quo <- rlang::enquo(b3_sc)
+  b4_sc_quo <- rlang::enquo(b4_sc)
+  b5_sc_quo <- rlang::enquo(b5_sc)
 
 
   coluns <- c(rlang::quo_name(h_quo),
@@ -103,7 +128,13 @@ apply_vol <- function(bd,
               rlang::quo_name(b2_quo),
               rlang::quo_name(b3_quo),
               rlang::quo_name(b4_quo),
-              rlang::quo_name(b5_quo))
+              rlang::quo_name(b5_quo),
+              rlang::quo_name(b0_sc_quo),
+              rlang::quo_name(b1_sc_quo),
+              rlang::quo_name(b2_sc_quo),
+              rlang::quo_name(b3_sc_quo),
+              rlang::quo_name(b4_sc_quo),
+              rlang::quo_name(b5_sc_quo))
 
 
   # Verificar se a coluna fornecida existe no data.frame
@@ -138,7 +169,7 @@ apply_vol <- function(bd,
                   hcom = max(hi),
                   htot = dplyr::case_when(cod1 == "Q" | cod2 == "Q" ~ !!h_qbr_quo,
                                           TRUE ~ !!h_quo),
-                  vcom = round(sum(vi , na.rm = T),4)) %>%
+                  vcom = round(sum(vi , na.rm = T),8)) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(hcom = tidyr::replace_na(hcom, 0),
                   dcom = tidyr::replace_na(dcom, 0),
@@ -149,6 +180,7 @@ apply_vol <- function(bd,
   future::plan(multisession, workers = cores)
   bd <- bd %>%
     dplyr::mutate(vtot = case_when(suprimir ~ 0,
+                                   htot <= !!h_toco_quo ~ 0,
                                    TRUE ~ round(furrr::future_pmap_dbl(list(hb = !!h_toco_quo,
                                                                             hf = htot,
                                                                             h = !!h_quo,
@@ -158,10 +190,39 @@ apply_vol <- function(bd,
                                                                             b2 = !!b2_quo,
                                                                             b3 = !!b3_quo,
                                                                             b4 = !!b4_quo,
-                                                                            b5 = !!b5_quo), kipp::poly2vol),4)),
+                                                                            b5 = !!b5_quo), kipp::poly2vol),8)),
                   vpont = vtot - vcom) %>%
     dplyr::mutate(vtot = tidyr::replace_na(vtot, 0),
                   vpont = tidyr::replace_na(vpont, 0))
+
+  #calculo dos volumes sem casca
+  bd <- bd %>%
+    dplyr::mutate(vcom_sc = case_when(suprimir ~ 0,
+                                      hcom <= !!h_toco_quo ~ 0,
+                                      TRUE ~ round(furrr::future_pmap_dbl(list(hb = !!h_toco_quo,
+                                                                               hf = hcom,
+                                                                               h = !!h_quo,
+                                                                               dap = !!dap_quo,
+                                                                               b0 = !!b0_quo,
+                                                                               b1 = !!b1_quo,
+                                                                               b2 = !!b2_quo,
+                                                                               b3 = !!b3_quo,
+                                                                               b4 = !!b4_quo,
+                                                                               b5 = !!b5_quo), kipp::poly2vol),8)),
+                  vtot_sc = case_when(suprimir ~ 0,
+                                      htot <= !!h_toco_quo ~ 0,
+                                      TRUE ~ round(furrr::future_pmap_dbl(list(hb = !!h_toco_quo,
+                                                                               hf = htot,
+                                                                               h = !!h_quo,
+                                                                               dap = !!dap_quo,
+                                                                               b0 = !!b0_quo,
+                                                                               b1 = !!b1_quo,
+                                                                               b2 = !!b2_quo,
+                                                                               b3 = !!b3_quo,
+                                                                               b4 = !!b4_quo,
+                                                                               b5 = !!b5_quo), kipp::poly2vol),8))) %>%
+    dplyr::mutate(vcom_sc = tidyr::replace_na(vcom_sc, 0),
+                  vtot_sc = tidyr::replace_na(vtot_sc, 0))
 
 
   #renomeio as variaveis que sao calculadas fora das função do kipp para padronização

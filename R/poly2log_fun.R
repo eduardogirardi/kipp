@@ -34,7 +34,7 @@
 
 
 
-# tr <- 100
+# tr <- 1
 # dap <- bd_tree$dap[tr]
 # h <- bd_tree$h[tr]
 # b0 <- bd_tree$b0[tr]
@@ -45,10 +45,13 @@
 # b5 <- bd_tree$b5[tr]
 # sortimento <- bd_tree$assort[[tr]]
 # h_toco <- bd_tree$h_toco[tr]
+# h_toco <- 0.1
 # dwg <- bd_tree$dwg[tr]
 # qbr <- bd_tree$qbr[tr]
 # h_dwg <- bd_tree$h_dwg[tr]
+# h_dwg <- 0
 # h_qbr <- bd_tree$h_quebra[tr]
+# h_qbr <- 0
 # suprimir <- bd_tree$suprimir[tr]
 
 
@@ -123,6 +126,7 @@ poly2log <-  function(h,
     logs[1, ] <- NA
   } else {
 
+    logs[1, ] <- NA
     nlogs <- 0
     vsort <- 0
 

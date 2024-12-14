@@ -22,13 +22,19 @@ apply_vol(
   b2,
   b3,
   b4,
-  b5
+  b5,
+  b0_sc,
+  b1_sc,
+  b2_sc,
+  b3_sc,
+  b4_sc,
+  b5_sc
 )
 }
 \arguments{
 \item{bd}{base de dados para aplicação do volume}
 
-\item{im}{vetor com campos identificadores de medicao}
+\item{im}{vetor com campos identificadores de medicao o padroa é \strong{Padrão será "centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"}}
 
 \item{cores}{n° de nucleos de processamento. \strong{Padrão sao 4}}
 
@@ -61,6 +67,18 @@ apply_vol(
 \item{b4}{b4 do polinomio (Schöepfer, 1996)}
 
 \item{b5}{b5 do polinomio (Schöepfer, 1996)}
+
+\item{b0_sc}{b0 do polinomio sem casca (Schöepfer, 1996)}
+
+\item{b1_sc}{b1 do polinomio sem casca (Schöepfer, 1996)}
+
+\item{b2_sc}{b2 do polinomio sem casca (Schöepfer, 1996)}
+
+\item{b3_sc}{b3 do polinomio sem casca (Schöepfer, 1996)}
+
+\item{b4_sc}{b4 do polinomio sem casca (Schöepfer, 1996)}
+
+\item{b5_sc}{b5 do polinomio sem casca (Schöepfer, 1996)}
 }
 \value{
 um data frame contendo campos calculados com os volumes correspondentes
@@ -88,6 +106,12 @@ apply_vol(bd,
           b2,
           b3,
           b4,
-          b5)
+          b5,
+          b0_sc,
+          b1_sc,
+          b2_sc,
+          b3_sc,
+          b4_sc,
+          b5_sc)
 
 }
