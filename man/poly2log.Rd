@@ -37,7 +37,7 @@ poly2log(
 
 \item{qbr}{se TRUE, sera simulada a extração de toras apenas ate a h_qbr. O padrao é falso FALSE.}
 
-\item{h_qbr}{altura em metros (caso qbr for TRUE) ate a qual sera realizado a extração de toras. Caso qbr for TRUE e o valor de h_qbr for NA ou 0, esse sera calculado utilizando 70% da altura toral.}
+\item{h_qbr}{altura em metros (caso qbr for TRUE) ate a qual sera realizado a extração de toras. Caso qbr for TRUE e o valor de h_qbr for NA ou 0, esse sera calculado utilizando 70 da altura toral.}
 
 \item{suprimir}{se TRUE, nao sera simulada a extração de nenhuma tora. Os valores de volume serao zerados. O padrão é FALSE. Aplica-se a DAPs e altura total zeradas, assim como falta de coeficientes da curva de afilamento.}
 

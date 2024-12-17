@@ -52,9 +52,9 @@ apply_vol(
 
 \item{qbr}{se TRUE, sera simulada a extração de toras apenas ate a h_qbr. O padrao é falso FALSE.}
 
-\item{h_qbr}{altura em metros (caso qbr for TRUE) ate a qual sera realizado a extração de toras. Caso qbr for TRUE e o valor de h_qbr for NA ou 0, esse sera calculado utilizando 70% da altura toral.}
+\item{h_qbr}{altura em metros (caso qbr for TRUE) ate a qual sera realizado a extração de toras. Caso qbr for TRUE e o valor de h_qbr for NA ou 0, esse sera calculado utilizando 70 da altura total}
 
-\item{suprimir}{se TRUE, nao sera simulada a extração de nenhuma tora. Os valores de volume serao zerados. O padrão é FALSE. Aplica-se a DAPs e altura total zeradas, assim como falta de coeficientes da curva de afilamento.}
+\item{suprimir}{se TRUE, nao sera simulada a extração de nenhuma tora. Os valores de volume serao zerados. O padrão é FALSE. Aplica-se a DAPs e altura total zeradas, assim como falta de coeficientes da curva de afilamento}
 
 \item{b0}{b0 do polinomio (Schöepfer, 1996)}
 
@@ -87,7 +87,6 @@ um data frame contendo campos calculados com os volumes correspondentes
 Realiza os caculos de volumes totais e comerciais abertos por sortimentos \cr
 }
 \examples{
-
 
 apply_vol(bd,
           cores = 4,

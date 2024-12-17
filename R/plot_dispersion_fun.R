@@ -48,7 +48,7 @@ plot_dispersion.lm <- function(x, data = NULL, exp_variables = NULL, delog = F, 
                     .residP = (.resid/.observed)*100)
   }else{
     dfplot <- dfplot %>%
-      dplyr::mutate(.observed = .[[1]],
+      dplyr::mutate(.observed = broom::augment(x)[[1]],
                     .residP = (.resid/.observed)*100)
   }
 

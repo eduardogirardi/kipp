@@ -473,10 +473,10 @@ if (nrow(bytree_com) < minobs){
   pr <- plot_resid(mol_schu_cc, delog = T)
   print(pr$Presid_fit)
   print(pr$Presid_obs)
-  print(pr$Sresid_obs)
+  print(pr$Sresid_fit)
   print(pr$obs_fit)
   
-  pr2 <- plot_resid_ev(mol_schu_cc, bytree_com, exp_variables = c("dap", "h"))
+  pr2 <- plot_resid_ev(mol_schu_cc, bytree_com, exp_variables = c("dap", "h"), delog = T)
   print(pr2$dap)
   print(pr2$h)
   
@@ -551,7 +551,7 @@ if (nrow(bytree_com) < minobs){
   print(pr$Sresid_obs)
   print(pr$obs_fit)
   
-  pr2 <- plot_resid_ev(mol_schu_sc, bytree_com, exp_variables = c("dap", "h"))
+  pr2 <- plot_resid_ev(mol_schu_sc, bytree_com, exp_variables = c("dap", "h"), delog = T)
   print(pr2$dap)
   print(pr2$h)
   

@@ -1,6 +1,5 @@
 #' Caculos de volumes
 #'
-#' @description
 #' Realiza os caculos de volumes totais e comerciais abertos por sortimentos \cr
 #'
 #' @param bd base de dados para aplicação do volume
@@ -13,8 +12,8 @@
 #' @param dwg se TRUE, sera considerado apenas o ultimo produto dos sortimentos ate a h_dwg. O padrão é FALSE
 #' @param h_dwg altura em metros (caso dwg for TRUE) ate a qual sera realizado a extração de toras seguindo os produtos descritos no sortimento, apos essa altura sera apenas utilizado o ultimo sortimento (menor D.P.F.)
 #' @param qbr se TRUE, sera simulada a extração de toras apenas ate a h_qbr. O padrao é falso FALSE.
-#' @param h_qbr altura em metros (caso qbr for TRUE) ate a qual sera realizado a extração de toras. Caso qbr for TRUE e o valor de h_qbr for NA ou 0, esse sera calculado utilizando 70% da altura toral.
-#' @param suprimir se TRUE, nao sera simulada a extração de nenhuma tora. Os valores de volume serao zerados. O padrão é FALSE. Aplica-se a DAPs e altura total zeradas, assim como falta de coeficientes da curva de afilamento.
+#' @param h_qbr altura em metros (caso qbr for TRUE) ate a qual sera realizado a extração de toras. Caso qbr for TRUE e o valor de h_qbr for NA ou 0, esse sera calculado utilizando 70 da altura total
+#' @param suprimir se TRUE, nao sera simulada a extração de nenhuma tora. Os valores de volume serao zerados. O padrão é FALSE. Aplica-se a DAPs e altura total zeradas, assim como falta de coeficientes da curva de afilamento
 #' @param b0 b0 do polinomio (Schöepfer, 1996)
 #' @param b1 b1 do polinomio (Schöepfer, 1996)
 #' @param b2 b2 do polinomio (Schöepfer, 1996)
@@ -28,12 +27,9 @@
 #' @param b4_sc b4 do polinomio sem casca (Schöepfer, 1996)
 #' @param b5_sc b5 do polinomio sem casca (Schöepfer, 1996)
 #'
-#'
 #' @return um data frame contendo campos calculados com os volumes correspondentes
 #'
-#'
 #' @examples
-#'
 #'
 #' apply_vol(bd,
 #'           cores = 4,
@@ -61,8 +57,6 @@
 #'           b5_sc)
 #'
 #' @export
-#'
-#'
 #'
 
 apply_vol <- function(bd,
