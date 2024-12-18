@@ -139,7 +139,8 @@ read_sort <- function(file, guess_max = 30000, ...){
   }
 
   assort <- assort %>%
-    dplyr::mutate(desc_sort = purrr::map(assort, concat_df))
+    dplyr::mutate(desc_sort = purrr::map(assort, concat_df)) %>%
+    tidyr::unnest(cols = desc_sort)
 
 
   return(assort)

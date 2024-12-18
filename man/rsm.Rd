@@ -6,7 +6,7 @@
 \usage{
 rsm(
   bd,
-  grp = "estrato",
+  grp = "talhao",
   sort,
   im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
   ie = c("especie", "matgen", "regime", "classe_idade"),

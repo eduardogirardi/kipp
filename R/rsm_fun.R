@@ -23,7 +23,7 @@
 #'
 
 rsm <-  function(bd,
-                 grp = "estrato",
+                 grp = "talhao",
                  sort,
                  im = c("centro", "rf", "talhao", "ciclo", "rotacao", "parcela", "dt_med"),
                  ie = c("especie", "matgen", "regime", "classe_idade"),
@@ -35,7 +35,7 @@ rsm <-  function(bd,
 
   #Gera as variaveis necessarias a partir da tabela de sortimentos
   ds <- sort %>%
-    unnest(cols = c(assort, desc_sort))
+    tidyr::unnest(cols = c(assort))
 
   assort_names <- unique(ds$name)
   assort_mols <- unique(ds$molsap)
@@ -225,9 +225,9 @@ rsm <-  function(bd,
                      covas = round(mean(covas)),
                      arvores = round(mean(arvores)),
                      fustes = round(mean(fustes)),
-                     area_basal = round(mean(area_basal),2),
-                     vmi = weighted.mean(mean(svmi), fustes,4),
-                     svmi = weighted.mean(mean(svmi), fustes,4),
+                     area_basal = round(mean(area_basal), 2),
+                     vmi = round(weighted.mean(mean(svmi), fustes), 4),
+                     svmi = round(weighted.mean(mean(svmi), fustes), 4),
                      svcom = round(sd(vcom),2),
                      svtot = round(sd(vtot),2),
                      dplyr::across(tidyselect::all_of(c(assort_names, "vpont", "vcom", "vtot", "vcom_sc", "vtot_sc")), ~ round(mean(., na.rm =T),2)),
@@ -281,8 +281,8 @@ rsm <-  function(bd,
                        arvores = round(mean(arvores)),
                        fustes = round(mean(fustes)),
                        area_basal = round(mean(area_basal),2),
-                       vmi = weighted.mean(mean(vmi), fustes,4),
-                       svmi = weighted.mean(mean(svmi), fustes,4),
+                       vmi = round(weighted.mean(mean(vmi), fustes), 4),
+                       svmi = round(weighted.mean(mean(svmi), fustes), 4),
                        svcom = round(sd(vcom),2),
                        svtot = round(sd(vtot),2),
                        dplyr::across(tidyselect::all_of(c(assort_names, "vpont", "vcom", "vtot", "vcom_sc", "vtot_sc")), ~ round(mean(., na.rm =T),2)),
@@ -492,16 +492,26 @@ rsm <-  function(bd,
     dplyr::mutate(dplyr::across(.cols = tidyselect::matches("^h|^d|li|g|ab|c_[A-Z]{1,2}") & tidyselect::where(is.numeric),
                                 .fns = ~ round(., 2))) %>%
     dplyr::mutate(dplyr::across(.cols = tidyselect::matches("vi|vcom|vtot|vpont") & tidyselect::where(is.numeric),
-                                .fns = ~ round(., 4)))
+                                .fns = ~ round(., 4))) %>%
+    dplyr::rename_with(~ stringr::str_replace(.,"^c_",""), tidyselect::matches("^c_[A-Z]{1,2}$"))
 
-  # #arredondamento
-  # bd_tree <- bd_tree %>%
-  #   dplyr::mutate(dplyr::across(c(idade, area_parc, dap:h, c_SC:c_X), ~ round(.x, 2))) %>%
-  #   dplyr::mutate(dplyr::across(c(hcom:vtot_sc), ~ round(.x, 4)))
+  rsm[["tree"]] <- rsm[["tree"]] %>%
+    dplyr::mutate(dplyr::across(.cols = tidyselect::matches("^h|^d|g|ab|c_[A-Z]{1,2}") & tidyselect::where(is.numeric),
+                                .fns = ~ round(., 2))) %>%
+    dplyr::mutate(dplyr::across(.cols = tidyselect::matches("vi|vcom|vtot|vpont") & tidyselect::where(is.numeric),
+                                .fns = ~ round(., 4))) %>%
+    dplyr::mutate(dplyr::across(.cols = tidyselect::any_of(assort_names) & tidyselect::where(is.numeric),
+                                .fns = ~ round(., 4))) %>%
+    dplyr::rename_with(~ stringr::str_replace(.,"^c_",""), tidyselect::matches("^c_[A-Z]{1,2}$"))
 
-  #dplyr::rename_with(~ stringr::str_replace(.,"^c_",""), tidyselect::matches("^c_[A-Z]{1,2}$"))
+  rsm[["plot"]] <- rsm[["plot"]] %>%
+    dplyr::rename_with(~ stringr::str_replace(.,"^c_",""), tidyselect::matches("^c_[A-Z]{1,2}$"))
 
-  #1
+  rsm[["stratum"]] <- rsm[["stratum"]] %>%
+    dplyr::rename_with(~ stringr::str_replace(.,"^c_",""), tidyselect::matches("^c_[A-Z]{1,2}$"))
+
+  rsm[["stand"]] <- rsm[["stand"]] %>%
+    dplyr::rename_with(~ stringr::str_replace(.,"^c_",""), tidyselect::matches("^c_[A-Z]{1,2}$"))
 
 
   return(rsm)

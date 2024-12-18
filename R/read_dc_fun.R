@@ -69,7 +69,7 @@ read_dc <- function(file, guess_max = 100000, ...){
     readr::col_character(),
     readr::col_double(),
     readr::col_double(),
-    readr::col_date(format = ""),
+    readr::col_character(),
     readr::col_character(),
     readr::col_character(),
     readr::col_double(),
@@ -92,8 +92,7 @@ read_dc <- function(file, guess_max = 100000, ...){
     readr::col_character())
 
   dc <- readr::read_csv2(file,
-                         locale = readr::locale(encoding = 'ISO-8859-1',
-                                                date_format = "%d/%m/%Y"),
+                         locale = readr::locale(encoding = 'ISO-8859-1'),
                          na = c(".", "NA", "NaN", ""),
                          col_types = coltype,
                          ...)
@@ -113,6 +112,13 @@ read_dc <- function(file, guess_max = 100000, ...){
   } else {
     stop("Falta variaveis no arquivo de campo. Consultar documentação.")
   }
+
+
+  #ajusta o campo data
+  dc <- dc %>%
+    dplyr::mutate(dt_med = dplyr::case_when(stringr::str_detect(dt_med, "^\\d{4}-\\d{2}-\\d{2}$") ~ as.Date(dt_med, format = "%Y-%m-%d"),
+                                            stringr::str_detect(dt_med, "^\\d{2}/\\d{2}/\\d{4}$") ~ as.Date(dt_med, format = "%d/%m/%Y"),
+                                            TRUE ~ NA_Date_))
 
   return(dc)
 }
