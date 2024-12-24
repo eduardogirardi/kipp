@@ -10,15 +10,18 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
 Imports: 
-    broom,
+    broom (>= 1.0.7),
     dplyr (>= 1.0.8),
     DT (>= 0.23),
+    furrr (>= 0.3.1),
+    future (>= 1.33.2),
     ggplot2 (>= 3.3.1),
-    janitor (>= 2.1.0),
+    janitor (>= 2.2.0),
     knitr (>= 1.39),
+    lubridate (>= 1.9.4),
     magrittr,
     patchwork (>= 1.1.1),
-    pracma,
+    pracma (>= 2.4.4),
     purrr (>= 0.3.4),
     readr (>= 2.1.1),
     rlang (>= 1.0.5),

@@ -51,11 +51,8 @@ write_dc <- function(bd, path_outputs){
                 "codQ")
 
   bd <- bd %>%
-    dplyr::select(tidyselect::all_of(dc_names)) %>%
-    dplyr::rename("tal" = "talhao",
-                  "hora_ini" = "hr_ini",
-                  "hora_fim" = "hr_fim")
+    dplyr::select(tidyselect::all_of(dc_names))
 
-  readr::write_csv2(bd, path_outputs, na = ".")
+  readr::write_csv2(bd, path_outputs, na = "")
 
 }
