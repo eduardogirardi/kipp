@@ -137,7 +137,7 @@ apply_vol <- function(bd,
   }
 
   #prepara processamento paralelo
-  future::plan(multisession, workers = cores)
+  future::plan(future::multisession, workers = cores)
   bd <- bd %>%
     dplyr::mutate(vol = furrr::future_pmap(list(h = !!h_quo,
                                                 dap = !!dap_quo,

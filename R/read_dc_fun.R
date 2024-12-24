@@ -118,7 +118,7 @@ read_dc <- function(file, guess_max = 100000, ...){
   dc <- dc %>%
     dplyr::mutate(dt_med = dplyr::case_when(stringr::str_detect(dt_med, "^\\d{4}-\\d{2}-\\d{2}$") ~ as.Date(dt_med, format = "%Y-%m-%d"),
                                             stringr::str_detect(dt_med, "^\\d{2}/\\d{2}/\\d{4}$") ~ as.Date(dt_med, format = "%d/%m/%Y"),
-                                            TRUE ~ NA_Date_))
+                                            TRUE ~ lubridate::NA_Date_))
 
   return(dc)
 }
