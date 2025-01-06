@@ -91,7 +91,7 @@ poly2log <-  function(h,
     h_dwg <- 0
   }
 
-  if(qbr & (missing(h_qbr) | is.na(h_qbr) | h_qbr == 0)){
+  if(qbr & (missing(h_qbr) | is.na(h_qbr))){
     h_qbr <- h * 0.7
   }
 
