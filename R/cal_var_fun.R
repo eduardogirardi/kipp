@@ -232,10 +232,10 @@ cal_var <- function(x,
 
   # calculo densidade -------------------------------------------------------
 
-  cod_cova <- c("Y", "Z", "ZA")
-  cod_fuste <- c("F", "M", "N", "CA", "CR", "Y", "Z", "ZA")
+  cod_cova <- c("Y", "Z")
+  cod_fuste <- c("F", "M", "N", "CA", "CR", "Y", "Z")
   #para calculo percentual de caidas
-  cod_percC <- c("F", "M", "Y", "Z", "ZA")
+  cod_percC <- c("F", "M", "Y", "Z")
 
 
   x <- x %>%
@@ -267,7 +267,11 @@ cal_var <- function(x,
     dplyr::mutate(cod1 = dplyr::case_when(cod1 == "VV" ~ "W",
                                           TRUE ~ cod1)) %>%
     dplyr::mutate(cod2 = dplyr::case_when(cod2 == "VV" ~ "W",
-                                          TRUE ~ cod2))
+                                          TRUE ~ cod2)) %>%
+    dplyr::mutate(cod1 = dplyr::case_when(cod1 == "ZA" ~ "Z",
+                                          TRUE ~ cod1)) %>%
+    dplyr::mutate(cod2 = dplyr::case_when(cod2 == "ZA" ~ "Z",
+                                          TRUE ~ cod2)
 
 
   #n codigos 1
@@ -287,7 +291,7 @@ cal_var <- function(x,
   #n de codigos em cod1 e cod2
   cods <- dplyr::full_join(cods, temp_cods) %>%
     dplyr::mutate(n1 = tidyr::replace_na(n1, 0),
-                  n2 = tidyr::replace_na(n2, 0),)
+                  n2 = tidyr::replace_na(n2, 0))
 
   #correcao do codigo B - conta quantos codigos B estao repetidos em cada arvore
   temp_codb <- x %>%
@@ -300,6 +304,8 @@ cal_var <- function(x,
   cods <- dplyr::left_join(cods, temp_codb) %>%
     dplyr::mutate(temp_codb = tidyr::replace_na(temp_codb, 0)) %>%
     dplyr::mutate(n = (n1 + n2) - temp_codb) %>%
+    dplyr::mutate(n = dplyr::case_when(n < 0 ~ 0,
+                                       T ~ n)) %>%
     dplyr::select(-n1, -n2, -temp_codb )
 
   #trasendo o n de covas, fuste e arvores para a base de codigos
@@ -384,7 +390,9 @@ cal_var <- function(x,
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
     tidyr::complete(cod, fill = list(n = 0, prop_cod = 0)) %>%
     tidyr::pivot_wider(names_from = cod, values_from = prop_cod) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() %>%
+    dplyr::mutate(dplyr::across(tidyselect::starts_with("c_"), ~ dplyr::case_when(is.infinite(.) ~ 0,
+                                                                                  TRUE ~ .)))
 
 
   #join cods
