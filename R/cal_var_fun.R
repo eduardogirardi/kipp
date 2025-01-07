@@ -262,7 +262,7 @@ cal_var <- function(x,
 
   # codigos qualitativos ----------------------------------------------------
 
-  #ajusta codigo VV
+  # ajusta codigo VV
   x <- x %>%
     dplyr::mutate(cod1 = dplyr::case_when(cod1 == "VV" ~ "W",
                                           TRUE ~ cod1)) %>%
@@ -271,36 +271,36 @@ cal_var <- function(x,
     dplyr::mutate(cod1 = dplyr::case_when(cod1 == "ZA" ~ "Z",
                                           TRUE ~ cod1)) %>%
     dplyr::mutate(cod2 = dplyr::case_when(cod2 == "ZA" ~ "Z",
-                                          TRUE ~ cod2)
+                                          TRUE ~ cod2))
 
 
-  #n codigos 1
+  # numero codigos 1
   cods <- x %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im, "cod1")))) %>%
     dplyr::tally() %>%
     dplyr::rename(cod = cod1, n1 = n) %>%
     dplyr::mutate(cod = tidyr::replace_na(cod, "SC"))
 
-  #n codigos 2
+  # numero codigos 2
   temp_cods <- x %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im, "cod2")))) %>%
     dplyr::tally() %>%
     dplyr::filter(!is.na(cod2)) %>%
     dplyr::rename(cod = cod2, n2 = n)
 
-  #n de codigos em cod1 e cod2
+  # numero de codigos em cod1 e cod2
   cods <- dplyr::full_join(cods, temp_cods) %>%
     dplyr::mutate(n1 = tidyr::replace_na(n1, 0),
                   n2 = tidyr::replace_na(n2, 0))
 
-  #correcao do codigo B - conta quantos codigos B estao repetidos em cada arvore
+  # correcao do codigo B - conta quantos codigos B estao repetidos em cada arvore
   temp_codb <- x %>%
     dplyr::filter(fuste > 1) %>%
     dplyr::group_by(dplyr::across(tidyselect::all_of(c(im)))) %>%
     dplyr::tally(name = "temp_codb") %>%
     dplyr::mutate(cod = "B")
 
-  #n total de codigos
+  # numero total de codigos
   cods <- dplyr::left_join(cods, temp_codb) %>%
     dplyr::mutate(temp_codb = tidyr::replace_na(temp_codb, 0)) %>%
     dplyr::mutate(n = (n1 + n2) - temp_codb) %>%
@@ -308,7 +308,7 @@ cal_var <- function(x,
                                        T ~ n)) %>%
     dplyr::select(-n1, -n2, -temp_codb )
 
-  #trasendo o n de covas, fuste e arvores para a base de codigos
+  # trasendo o n de covas, fuste e arvores para a base de codigos
   cods <- dplyr::left_join(cods,
                            dplyr::distinct_all( dplyr::select(x,
                                                               tidyselect::all_of(c(im, "covas_parc", "arvores_parc", "fustes_parc", "percC_parc")))))
@@ -316,9 +316,9 @@ cal_var <- function(x,
 
 
   #cosistir:
-  #codigo B e codigo em todos os fustes
-  #nao pode haver codigo J e K na mesmo fuste - sem tem os 2 ele é K
-  #nao pode haver codigo N com J ou K na mesmo fuste - sem tem N ele é N
+  # codigo B e codigo em todos os fustes
+  # nao pode haver codigo J e K na mesmo fuste - sem tem os 2 ele é K
+  # nao pode haver codigo N com J ou K na mesmo fuste - sem tem N ele é N
   # nao pode haver o codigo M ou N em conjunto com C
 
   #calculo da proporcao de cada codigo
