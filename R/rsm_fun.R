@@ -129,8 +129,13 @@ rsm <-  function(bd,
                        names_from = name,
                        values_from = vi,
                        values_fill = 0,
-                       values_fn = function(x) sum(x, na.rm = TRUE)) %>%
-    dplyr::select(-'NA')
+                       values_fn = function(x) sum(x, na.rm = TRUE))
+
+  if ('NA' %in% names(rsm[["tree"]])){
+    rsm[["tree"]] <- rsm[["tree"]] %>%
+      select(-`NA`)
+  }
+
 
 
   #gera campos para todos sortimentos
