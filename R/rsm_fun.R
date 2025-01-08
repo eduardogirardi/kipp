@@ -136,8 +136,6 @@ rsm <-  function(bd,
       select(-`NA`)
   }
 
-
-
   #gera campos para todos sortimentos
   missing_columns <- base::setdiff(assort_names, names(rsm[["tree"]]))
   rsm[["tree"]][missing_columns] <- 0
