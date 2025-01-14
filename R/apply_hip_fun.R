@@ -118,6 +118,12 @@ apply_hip <- function(bd, coefs, priority = NULL, by.hip_sel = F){
     dplyr::mutate(hqbr = dplyr::case_when(cod1 == "Q" | cod2 == "Q" ~ round(hobs, 4),
                                               TRUE ~ NA_real_))
 
+  #corrigi altura de querbra maior que altura total estimada
+  bd <- bd %>%
+    dplyr::mutate(hqbr = dplyr::case_when(hqbr >= hest ~ hest,
+                                          TRUE ~ hqbr))
+
+
   #gera o campo h com as alturas totais (inclusive das quebradas) ordenando observadas e estimadas
   bd <- bd %>%
     dplyr::mutate(h = dplyr::case_when(hobs > 0 &
